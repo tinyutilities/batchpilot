@@ -119,14 +119,16 @@ function ActionsMenu({
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <button
+        <Button
           type="button"
+          variant="ghost"
+          size="icon-sm"
           aria-label={`Actions for ${student.fullName}`}
           onClick={(e) => e.stopPropagation()}
-          className="flex h-8 w-8 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:bg-slate-100 hover:text-foreground dark:hover:bg-slate-800"
+          className="text-muted-foreground"
         >
           <MoreHorizontal className="h-4 w-4" aria-hidden="true" />
-        </button>
+        </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" onClick={(e) => e.stopPropagation()}>
         <DropdownMenuItem onClick={() => onViewStudent?.(student)}>
@@ -201,7 +203,7 @@ function TableSkeleton() {
                 <Skeleton className="h-6 w-16 rounded-lg" />
               </td>
               <td className="px-6 py-4">
-                <Skeleton className="h-8 w-8 rounded-lg" />
+                <Skeleton className="h-9 w-9 rounded-lg" />
               </td>
             </tr>
           ))}
@@ -213,7 +215,7 @@ function TableSkeleton() {
 
 function EmptyState({ hasAnyStudents }: { hasAnyStudents: boolean }) {
   return (
-    <div className="flex flex-col items-center justify-center gap-3 px-6 py-16 text-center">
+    <div className="flex flex-col items-center justify-center gap-3 px-6 py-10 text-center">
       <div className="flex h-12 w-12 items-center justify-center rounded-full bg-slate-100 dark:bg-slate-800">
         <Users2
           className="h-6 w-6 text-muted-foreground"

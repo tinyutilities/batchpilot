@@ -41,7 +41,7 @@ function TableSkeleton() {
           <Skeleton className="h-4 w-32" />
           <Skeleton className="h-4 w-16" />
           <Skeleton className="h-4 w-16" />
-          <Skeleton className="ml-auto h-8 w-8 rounded-lg" />
+          <Skeleton className="ml-auto h-9 w-9 rounded-lg" />
         </div>
       ))}
     </div>
@@ -50,7 +50,7 @@ function TableSkeleton() {
 
 function EmptyState() {
   return (
-    <div className="flex flex-col items-center justify-center gap-3 px-6 py-16 text-center">
+    <div className="flex flex-col items-center justify-center gap-3 px-6 py-10 text-center">
       <div className="flex h-12 w-12 items-center justify-center rounded-full bg-slate-100 dark:bg-slate-800">
         <CalendarX2
           className="h-6 w-6 text-muted-foreground"
@@ -118,8 +118,12 @@ export default function AttendanceTable({
             return (
               <TableRow
                 key={`${session.batchId}-${session.date}`}
-                className="cursor-pointer"
+                tabIndex={0}
+                className="cursor-pointer focus:bg-muted/50 focus:outline-none"
                 onClick={() => onViewSession(session)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") onViewSession(session);
+                }}
               >
                 <TableCell className="font-medium text-foreground">
                   {format(new Date(session.date), "d MMM yyyy")}

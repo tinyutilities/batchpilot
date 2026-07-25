@@ -1,6 +1,10 @@
 // lib/mock/students.ts
 
-import type { Student, StudentFormData, StudentStatsData } from "@/types/student";
+import type {
+  Student,
+  StudentFormData,
+  StudentStatsData,
+} from "@/types/student";
 import { getBatchById } from "@/lib/mock/batch";
 import { USE_DEMO_DATA } from "@/lib/config";
 
@@ -720,7 +724,7 @@ export function computeStudentStats(students: Student[]): StudentStatsData {
         ? 0
         : Math.round(
             students.reduce((sum, s) => sum + s.attendancePercentage, 0) /
-              students.length
+              students.length,
           ),
     pendingFeesAmount: students.reduce((sum, s) => sum + s.pendingFees, 0),
     pendingFeesCount: students.filter((s) => s.pendingFees > 0).length,
@@ -738,7 +742,7 @@ export function createStudent(data: StudentFormData): Student {
   const batch = getBatchById(data.batchId);
 
   const student: Student = {
-    id: `stu-${Date.now()}`,
+    id: `stu-${crypto.randomUUID()}`,
     firstName: data.firstName,
     lastName: data.lastName,
     fullName: `${data.firstName} ${data.lastName}`.trim(),
@@ -764,7 +768,7 @@ export function createStudent(data: StudentFormData): Student {
 
 export function updateStudent(
   id: string,
-  data: StudentFormData
+  data: StudentFormData,
 ): Student | null {
   const index = mockStudents.findIndex((student) => student.id === id);
   if (index === -1) return null;

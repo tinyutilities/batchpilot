@@ -6,15 +6,29 @@ export type BatchStatus = "active" | "inactive";
 
 export type WeekDay = "mon" | "tue" | "wed" | "thu" | "fri" | "sat" | "sun";
 
+// One meeting slot for a single day of the week — a batch can meet on
+// different days at different times (e.g. Monday 4-5:30pm, Wednesday
+// 6-7pm), so schedule is a list of these rather than one shared time.
+export interface BatchScheduleEntry {
+  day: WeekDay;
+  startTime: string;
+  endTime: string;
+}
+
 export interface Batch {
   id: string;
   name: string;
+  // Optional — many tuition teachers only teach one subject, so the batch
+  // name alone (e.g. "Morning Batch") is often enough.
   subject: string;
+  // Auto-filled from the teacher's Settings profile, not user-entered.
+  // Stored per-batch (rather than looked up live) so existing demo data
+  // and the admin section's per-teacher grouping keep working unchanged;
+  // becomes meaningful once multiple teachers are supported.
   teacherName: string;
   googleMeetLink: string;
-  days: WeekDay[];
-  startTime: string;
-  endTime: string;
+  schedule: BatchScheduleEntry[];
+  // 0 means no limit set ("Unlimited") — capacity is optional at creation.
   capacity: number;
   status: BatchStatus;
   createdAt: string;
@@ -40,11 +54,8 @@ export interface BatchStatsProps {
 export interface BatchFormData {
   name: string;
   subject: string;
-  teacherName: string;
   googleMeetLink: string;
-  days: WeekDay[];
-  startTime: string;
-  endTime: string;
+  schedule: BatchScheduleEntry[];
   capacity: number;
   status: BatchStatus;
 }

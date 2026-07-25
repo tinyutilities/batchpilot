@@ -10,6 +10,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { StatCard } from "@/components/dashboard/stat-card";
 import { DashboardCard } from "@/components/dashboard/dashboard-card";
+import { PageContainer } from "@/components/layout/page-container";
 import { PageHeader } from "@/components/layout/page-header";
 import StudentCard from "@/components/students/StudentCard";
 import StudentDeleteDialog from "@/components/students/StudentDeleteDialog";
@@ -68,12 +69,12 @@ export default function StudentProfilePage() {
 
   if (!student) {
     return (
-      <div className="flex flex-col gap-8">
+      <PageContainer className="gap-6">
         <PageHeader
           title="Student not found"
           description="This student may have been removed."
         />
-        <div className="flex flex-col items-center justify-center gap-3 rounded-2xl border border-slate-200 bg-white px-6 py-16 text-center dark:border-slate-800 dark:bg-slate-950">
+        <div className="flex flex-col items-center justify-center gap-3 rounded-2xl border border-slate-200 bg-white px-6 py-10 text-center dark:border-slate-800 dark:bg-slate-950">
           <div className="flex h-12 w-12 items-center justify-center rounded-full bg-slate-100 dark:bg-slate-800">
             <UserX
               className="h-6 w-6 text-muted-foreground"
@@ -90,7 +91,7 @@ export default function StudentProfilePage() {
             <Link href="/dashboard/students">Back to Students</Link>
           </Button>
         </div>
-      </div>
+      </PageContainer>
     );
   }
 
@@ -125,7 +126,7 @@ export default function StudentProfilePage() {
   }
 
   return (
-    <div className="flex flex-col gap-8">
+    <PageContainer className="gap-6">
       <PageHeader
         title={student.fullName}
         description="Student profile and academic overview."
@@ -207,22 +208,26 @@ export default function StudentProfilePage() {
                   {student.gender}
                 </dd>
               </div>
-              <div className="flex flex-col gap-1">
-                <dt className="text-xs font-medium text-muted-foreground">
-                  Date of Birth
-                </dt>
-                <dd className="text-sm font-medium text-foreground">
-                  {format(new Date(student.dateOfBirth), "d MMM yyyy")}
-                </dd>
-              </div>
-              <div className="flex flex-col gap-1">
-                <dt className="text-xs font-medium text-muted-foreground">
-                  School
-                </dt>
-                <dd className="text-sm font-medium text-foreground">
-                  {student.school}
-                </dd>
-              </div>
+              {student.dateOfBirth && (
+                <div className="flex flex-col gap-1">
+                  <dt className="text-xs font-medium text-muted-foreground">
+                    Date of Birth
+                  </dt>
+                  <dd className="text-sm font-medium text-foreground">
+                    {format(new Date(student.dateOfBirth), "d MMM yyyy")}
+                  </dd>
+                </div>
+              )}
+              {student.school && (
+                <div className="flex flex-col gap-1">
+                  <dt className="text-xs font-medium text-muted-foreground">
+                    School
+                  </dt>
+                  <dd className="text-sm font-medium text-foreground">
+                    {student.school}
+                  </dd>
+                </div>
+              )}
               <div className="flex flex-col gap-1">
                 <dt className="text-xs font-medium text-muted-foreground">
                   Enrolled Since
@@ -456,6 +461,6 @@ export default function StudentProfilePage() {
         }}
         onSubmit={handleSubmitPayment}
       />
-    </div>
+    </PageContainer>
   );
 }

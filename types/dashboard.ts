@@ -38,16 +38,6 @@ export interface ActivityItem {
   description?: string;
 }
 
-export type AlertSeverity = "warning" | "critical";
-
-export interface AlertItem {
-  id: string;
-  severity: AlertSeverity;
-  title: string;
-  description: string;
-  href: string;
-}
-
 export interface TrendPoint {
   label: string;
   percentage: number;

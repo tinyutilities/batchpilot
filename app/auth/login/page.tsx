@@ -1,16 +1,18 @@
-'use client'
+"use client";
 
-import * as React from 'react'
-import { Suspense } from 'react'
-import Link from 'next/link'
-import { useSearchParams } from 'next/navigation'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
-import { Separator } from '@/components/ui/separator'
-import { Card, CardContent } from '@/components/ui/card'
-import { Logo } from '@/components/branding/logo'
-import { PageHeader } from '@/components/layout/page-header'
+import * as React from "react";
+import { Suspense } from "react";
+import Link from "next/link";
+import { useSearchParams } from "next/navigation";
+import { Eye, EyeOff } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Separator } from "@/components/ui/separator";
+import { Card, CardContent } from "@/components/ui/card";
+import { toast } from "sonner";
+import { Logo } from "@/components/branding/logo";
+import { PageHeader } from "@/components/layout/page-header";
 import { createClient } from "@/lib/supabase/client";
 
 function GoogleIcon() {
@@ -33,35 +35,36 @@ function GoogleIcon() {
         fill="#EA4335"
       />
     </svg>
-  )
+  );
 }
 
 function LoginContent() {
-  const searchParams = useSearchParams()
-  const oauthError = searchParams.get('error')
-  const [email, setEmail] = React.useState('')
-  const [password, setPassword] = React.useState('')
+  const searchParams = useSearchParams();
+  const oauthError = searchParams.get("error");
+  const [email, setEmail] = React.useState("");
+  const [password, setPassword] = React.useState("");
+  const [showPassword, setShowPassword] = React.useState(false);
 
   function handleSubmit(e: React.FormEvent) {
-    e.preventDefault()
+    e.preventDefault();
     // Backend authentication to be added later
   }
 
   async function handleGoogleSignIn() {
-  const supabase = createClient();
+    const supabase = createClient();
 
-  const { error } = await supabase.auth.signInWithOAuth({
-    provider: "google",
-    options: {
-      redirectTo: `${window.location.origin}/auth/callback`,
-    },
-  });
+    const { error } = await supabase.auth.signInWithOAuth({
+      provider: "google",
+      options: {
+        redirectTo: `${window.location.origin}/auth/callback`,
+      },
+    });
 
-  if (error) {
-    console.error(error);
-    alert(error.message);
+    if (error) {
+      console.error(error);
+      toast.error(error.message);
+    }
   }
-}
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-slate-50 px-4 py-10 dark:bg-slate-950">
@@ -98,15 +101,30 @@ function LoginContent() {
 
               <div className="flex flex-col gap-2">
                 <Label htmlFor="password">Password</Label>
-                <Input
-                  id="password"
-                  type="password"
-                  placeholder="••••••••"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  required
-                  className="h-11 rounded-xl"
-                />
+                <div className="relative">
+                  <Input
+                    id="password"
+                    type={showPassword ? "text" : "password"}
+                    placeholder="••••••••"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    required
+                    className="h-11 rounded-xl pr-9"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword((prev) => !prev)}
+                    aria-label={showPassword ? "Hide password" : "Show password"}
+                    aria-pressed={showPassword}
+                    className="absolute right-1 top-1/2 -translate-y-1/2 text-muted-foreground transition-colors hover:text-foreground"
+                  >
+                    {showPassword ? (
+                      <EyeOff className="h-4 w-4" aria-hidden="true" />
+                    ) : (
+                      <Eye className="h-4 w-4" aria-hidden="true" />
+                    )}
+                  </button>
+                </div>
               </div>
 
               <Button
@@ -136,7 +154,7 @@ function LoginContent() {
             </Button>
 
             <p className="mt-6 text-center text-sm text-muted-foreground">
-              Don&apos;t have an account?{' '}
+              Don&apos;t have an account?{" "}
               <Link
                 href="/auth/signup"
                 className="font-medium text-indigo-600 hover:underline dark:text-indigo-400"
@@ -148,7 +166,7 @@ function LoginContent() {
         </Card>
       </div>
     </div>
-  )
+  );
 }
 
 export default function LoginPage() {
@@ -156,5 +174,5 @@ export default function LoginPage() {
     <Suspense fallback={null}>
       <LoginContent />
     </Suspense>
-  )
+  );
 }

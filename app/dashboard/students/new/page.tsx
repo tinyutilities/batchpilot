@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
+import { PageContainer } from "@/components/layout/page-container";
 import { PageHeader } from "@/components/layout/page-header";
 import StudentForm from "@/components/students/StudentForm";
 import { createStudent } from "@/lib/mock/student";
@@ -25,7 +26,7 @@ export default function AddStudentPage() {
   }
 
   return (
-    <div className="flex flex-col gap-8">
+    <PageContainer className="gap-6">
       <PageHeader
         title="Add Student"
         description="Register a new student into a tuition batch."
@@ -38,6 +39,6 @@ export default function AddStudentPage() {
         onSubmit={handleCreate}
         onCancel={handleCancel}
       />
-    </div>
+    </PageContainer>
   );
 }

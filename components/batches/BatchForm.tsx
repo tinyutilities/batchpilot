@@ -27,12 +27,9 @@ interface BatchFormProps {
 const emptyFormData: BatchFormData = {
   name: "",
   subject: "",
-  teacherName: "",
   googleMeetLink: "",
-  days: [],
-  startTime: "",
-  endTime: "",
-  capacity: 20,
+  schedule: [],
+  capacity: 0,
   status: "active",
 };
 
@@ -47,6 +44,7 @@ const DAYS_OF_WEEK: { id: WeekDay; label: string }[] = [
 ];
 
 type FormErrors = Partial<Record<keyof BatchFormData, string>>;
+type ScheduleErrors = Partial<Record<WeekDay, string>>;
 
 export default function BatchForm({
   initialValues,
@@ -60,10 +58,11 @@ export default function BatchForm({
     ...initialValues,
   });
   const [errors, setErrors] = useState<FormErrors>({});
+  const [scheduleErrors, setScheduleErrors] = useState<ScheduleErrors>({});
 
   function updateField<K extends keyof BatchFormData>(
     key: K,
-    value: BatchFormData[K]
+    value: BatchFormData[K],
   ) {
     setFormData((prev) => ({ ...prev, [key]: value }));
     setErrors((prev) => {
@@ -74,36 +73,68 @@ export default function BatchForm({
     });
   }
 
+  function isDaySelected(day: WeekDay) {
+    return formData.schedule.some((entry) => entry.day === day);
+  }
+
   function toggleDay(day: WeekDay, checked: boolean) {
-    updateField(
-      "days",
-      checked ? [...formData.days, day] : formData.days.filter((d) => d !== day)
-    );
+    setFormData((prev) => ({
+      ...prev,
+      schedule: checked
+        ? [...prev.schedule, { day, startTime: "", endTime: "" }]
+        : prev.schedule.filter((entry) => entry.day !== day),
+    }));
+    setErrors((prev) => {
+      if (!prev.schedule) return prev;
+      const next = { ...prev };
+      delete next.schedule;
+      return next;
+    });
+    setScheduleErrors((prev) => {
+      if (!prev[day]) return prev;
+      const next = { ...prev };
+      delete next[day];
+      return next;
+    });
+  }
+
+  function updateScheduleTime(
+    day: WeekDay,
+    field: "startTime" | "endTime",
+    value: string,
+  ) {
+    setFormData((prev) => ({
+      ...prev,
+      schedule: prev.schedule.map((entry) =>
+        entry.day === day ? { ...entry, [field]: value } : entry,
+      ),
+    }));
+    setScheduleErrors((prev) => {
+      if (!prev[day]) return prev;
+      const next = { ...prev };
+      delete next[day];
+      return next;
+    });
   }
 
   function validate(): boolean {
     const nextErrors: FormErrors = {};
+    const nextScheduleErrors: ScheduleErrors = {};
 
     if (!formData.name.trim()) nextErrors.name = "Batch name is required.";
-    if (!formData.subject.trim())
-      nextErrors.subject = "Subject is required.";
-    if (!formData.teacherName.trim())
-      nextErrors.teacherName = "Teacher name is required.";
-    if (formData.days.length === 0)
-      nextErrors.days = "Select at least one day.";
-    if (!formData.startTime)
-      nextErrors.startTime = "Start time is required.";
-    if (!formData.endTime) nextErrors.endTime = "End time is required.";
-    if (
-      formData.startTime &&
-      formData.endTime &&
-      formData.startTime >= formData.endTime
-    ) {
-      nextErrors.endTime = "End time must be after start time.";
+
+    if (formData.schedule.length === 0) {
+      nextErrors.schedule = "Select at least one day.";
+    } else {
+      formData.schedule.forEach((entry) => {
+        if (!entry.startTime || !entry.endTime) {
+          nextScheduleErrors[entry.day] = "Start and end time are required.";
+        } else if (entry.startTime >= entry.endTime) {
+          nextScheduleErrors[entry.day] = "End time must be after start time.";
+        }
+      });
     }
-    if (!formData.capacity || formData.capacity <= 0) {
-      nextErrors.capacity = "Capacity must be at least 1.";
-    }
+
     if (formData.googleMeetLink.trim()) {
       try {
         new URL(formData.googleMeetLink.trim());
@@ -113,7 +144,11 @@ export default function BatchForm({
     }
 
     setErrors(nextErrors);
-    return Object.keys(nextErrors).length === 0;
+    setScheduleErrors(nextScheduleErrors);
+    return (
+      Object.keys(nextErrors).length === 0 &&
+      Object.keys(nextScheduleErrors).length === 0
+    );
   }
 
   function handleSubmit(e: React.FormEvent) {
@@ -123,23 +158,23 @@ export default function BatchForm({
   }
 
   return (
-    <Card className="rounded-2xl border-slate-200 shadow-sm dark:border-slate-800">
-      <CardContent className="p-6 sm:p-8">
+    <Card className="[--card-spacing:--spacing(5)] rounded-2xl border-slate-200 shadow-sm sm:[--card-spacing:--spacing(6)] dark:border-slate-800">
+      <CardContent>
         <form
           onSubmit={handleSubmit}
           noValidate
-          className="flex flex-col gap-8"
+          className="flex flex-col gap-6"
         >
           <FormSection
             title="Batch Details"
             description="Basic information about this batch."
           >
-            <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
               <div className="flex flex-col gap-2">
                 <Label htmlFor="name">Batch Name *</Label>
                 <Input
                   id="name"
-                  placeholder="e.g. Evening Physics Batch"
+                  placeholder="e.g. Morning Batch"
                   value={formData.name}
                   onChange={(e) => updateField("name", e.target.value)}
                   aria-invalid={Boolean(errors.name)}
@@ -151,39 +186,14 @@ export default function BatchForm({
               </div>
 
               <div className="flex flex-col gap-2">
-                <Label htmlFor="subject">Subject *</Label>
+                <Label htmlFor="subject">Subject</Label>
                 <Input
                   id="subject"
-                  placeholder="e.g. Physics"
+                  placeholder="Leave blank if you teach one subject"
                   value={formData.subject}
                   onChange={(e) => updateField("subject", e.target.value)}
-                  aria-invalid={Boolean(errors.subject)}
                   className="h-11 rounded-xl"
                 />
-                {errors.subject && (
-                  <p className="text-xs text-destructive">
-                    {errors.subject}
-                  </p>
-                )}
-              </div>
-
-              <div className="flex flex-col gap-2">
-                <Label htmlFor="teacherName">Teacher *</Label>
-                <Input
-                  id="teacherName"
-                  placeholder="e.g. Mrs. Kavita Sharma"
-                  value={formData.teacherName}
-                  onChange={(e) =>
-                    updateField("teacherName", e.target.value)
-                  }
-                  aria-invalid={Boolean(errors.teacherName)}
-                  className="h-11 rounded-xl"
-                />
-                {errors.teacherName && (
-                  <p className="text-xs text-destructive">
-                    {errors.teacherName}
-                  </p>
-                )}
               </div>
 
               <div className="flex flex-col gap-2">
@@ -208,7 +218,7 @@ export default function BatchForm({
 
           <FormSection
             title="Schedule"
-            description="When this batch meets each week."
+            description="Select the days this batch meets — each day can have its own timing."
           >
             <div className="flex flex-col gap-3">
               <Label>Days *</Label>
@@ -217,87 +227,115 @@ export default function BatchForm({
                   <div key={day.id} className="flex items-center gap-2">
                     <Checkbox
                       id={`day-${day.id}`}
-                      checked={formData.days.includes(day.id)}
+                      checked={isDaySelected(day.id)}
                       onCheckedChange={(checked) =>
                         toggleDay(day.id, checked === true)
                       }
                     />
                     <Label
                       htmlFor={`day-${day.id}`}
-                      className="text-sm font-normal normal-case"
+                      className="text-sm font-normal"
                     >
                       {day.label}
                     </Label>
                   </div>
                 ))}
               </div>
-              {errors.days && (
-                <p className="text-xs text-destructive">{errors.days}</p>
+              {errors.schedule && (
+                <p className="text-xs text-destructive">{errors.schedule}</p>
               )}
             </div>
 
-            <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
-              <div className="flex flex-col gap-2">
-                <Label htmlFor="startTime">Start Time *</Label>
-                <Input
-                  id="startTime"
-                  type="time"
-                  value={formData.startTime}
-                  onChange={(e) =>
-                    updateField("startTime", e.target.value)
-                  }
-                  aria-invalid={Boolean(errors.startTime)}
-                  className="h-11 rounded-xl"
-                />
-                {errors.startTime && (
-                  <p className="text-xs text-destructive">
-                    {errors.startTime}
-                  </p>
-                )}
-              </div>
+            {formData.schedule.length > 0 && (
+              <div className="flex flex-col gap-4">
+                {DAYS_OF_WEEK.filter((day) => isDaySelected(day.id)).map(
+                  (day) => {
+                    const entry = formData.schedule.find(
+                      (s) => s.day === day.id,
+                    )!;
+                    return (
+                      <div
+                        key={day.id}
+                        className="flex flex-col gap-4 rounded-xl border border-slate-200 p-4 dark:border-slate-800"
+                      >
+                        <p className="text-sm font-medium text-foreground">
+                          {day.label}
+                        </p>
+                        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                          <div className="flex flex-col gap-2">
+                            <Label htmlFor={`start-${day.id}`}>
+                              Start Time *
+                            </Label>
+                            <Input
+                              id={`start-${day.id}`}
+                              type="time"
+                              value={entry.startTime}
+                              onChange={(e) =>
+                                updateScheduleTime(
+                                  day.id,
+                                  "startTime",
+                                  e.target.value,
+                                )
+                              }
+                              aria-invalid={Boolean(scheduleErrors[day.id])}
+                              className="h-11 rounded-xl"
+                            />
+                          </div>
 
-              <div className="flex flex-col gap-2">
-                <Label htmlFor="endTime">End Time *</Label>
-                <Input
-                  id="endTime"
-                  type="time"
-                  value={formData.endTime}
-                  onChange={(e) => updateField("endTime", e.target.value)}
-                  aria-invalid={Boolean(errors.endTime)}
-                  className="h-11 rounded-xl"
-                />
-                {errors.endTime && (
-                  <p className="text-xs text-destructive">
-                    {errors.endTime}
-                  </p>
+                          <div className="flex flex-col gap-2">
+                            <Label htmlFor={`end-${day.id}`}>
+                              End Time *
+                            </Label>
+                            <Input
+                              id={`end-${day.id}`}
+                              type="time"
+                              value={entry.endTime}
+                              onChange={(e) =>
+                                updateScheduleTime(
+                                  day.id,
+                                  "endTime",
+                                  e.target.value,
+                                )
+                              }
+                              aria-invalid={Boolean(scheduleErrors[day.id])}
+                              className="h-11 rounded-xl"
+                            />
+                          </div>
+                        </div>
+                        {scheduleErrors[day.id] && (
+                          <p className="text-xs text-destructive">
+                            {scheduleErrors[day.id]}
+                          </p>
+                        )}
+                      </div>
+                    );
+                  },
                 )}
               </div>
-            </div>
+            )}
           </FormSection>
 
           <FormSection
             title="Capacity & Access"
             description="Enrollment limit and how students join the class."
           >
-            <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
               <div className="flex flex-col gap-2">
-                <Label htmlFor="capacity">Capacity *</Label>
+                <Label htmlFor="capacity">Capacity</Label>
                 <Input
                   id="capacity"
                   type="number"
                   min={1}
-                  value={formData.capacity}
+                  placeholder="Leave blank for unlimited"
+                  value={formData.capacity || ""}
                   onChange={(e) =>
-                    updateField("capacity", Number(e.target.value))
+                    updateField(
+                      "capacity",
+                      e.target.value ? Number(e.target.value) : 0,
+                    )
                   }
-                  aria-invalid={Boolean(errors.capacity)}
                   className="h-11 rounded-xl"
                 />
-                {errors.capacity && (
-                  <p className="text-xs text-destructive">
-                    {errors.capacity}
-                  </p>
-                )}
               </div>
 
               <div className="flex flex-col gap-2">
@@ -322,7 +360,7 @@ export default function BatchForm({
             </div>
           </FormSection>
 
-          <div className="flex flex-col-reverse gap-3 pt-2 sm:flex-row sm:justify-end">
+          <div className="flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
             <Button
               type="button"
               variant="outline"

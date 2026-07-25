@@ -1,10 +1,11 @@
 import { ArrowDown, ArrowUp, ClipboardList, TrendingUp } from "lucide-react";
 import { StatCard } from "@/components/dashboard/stat-card";
+import { StatCardGrid } from "@/components/dashboard/stat-card-grid";
 import type { MarksStatsProps } from "@/types/marks";
 
 export default function MarksStats({ stats }: MarksStatsProps) {
   return (
-    <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+    <StatCardGrid>
       <StatCard
         title="Tests Conducted"
         value={stats.totalTests}
@@ -31,6 +32,6 @@ export default function MarksStats({ stats }: MarksStatsProps) {
         icon={<ArrowDown className="h-5 w-5" />}
         color="rose"
       />
-    </div>
+    </StatCardGrid>
   );
 }

@@ -1,10 +1,11 @@
 import { Layers, CheckCircle2, Users, Gauge } from "lucide-react";
 import { StatCard } from "@/components/dashboard/stat-card";
+import { StatCardGrid } from "@/components/dashboard/stat-card-grid";
 import type { BatchStatsProps } from "@/types/batch";
 
 export default function BatchStats({ stats }: BatchStatsProps) {
   return (
-    <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+    <StatCardGrid>
       <StatCard
         title="Total Batches"
         value={stats.totalBatches}
@@ -22,7 +23,7 @@ export default function BatchStats({ stats }: BatchStatsProps) {
       <StatCard
         title="Total Enrolled"
         value={stats.totalEnrolled}
-        description="Students across all batches"
+        description="Across all batches"
         icon={<Users className="h-5 w-5" />}
         color="blue"
       />
@@ -33,6 +34,6 @@ export default function BatchStats({ stats }: BatchStatsProps) {
         icon={<Gauge className="h-5 w-5" />}
         color="amber"
       />
-    </div>
+    </StatCardGrid>
   );
 }

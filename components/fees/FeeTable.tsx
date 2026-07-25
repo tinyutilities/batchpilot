@@ -6,7 +6,6 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
-  Table,
   TableBody,
   TableCell,
   TableHead,
@@ -15,7 +14,11 @@ import {
 } from "@/components/ui/table";
 import PaymentStatusBadge from "@/components/fees/PaymentStatusBadge";
 import { monthLabel } from "@/lib/mock/fees";
+import { cn } from "@/lib/utils";
 import type { FeeTableRow } from "@/types/fees";
+
+const stickyHeadClass =
+  "sticky top-0 z-10 bg-white dark:bg-slate-950";
 
 interface FeeTableProps {
   rows: FeeTableRow[];
@@ -46,7 +49,7 @@ function TableSkeleton() {
           <Skeleton className="h-4 w-32" />
           <Skeleton className="h-4 w-24" />
           <Skeleton className="h-4 w-16" />
-          <Skeleton className="ml-auto h-8 w-28 rounded-xl" />
+          <Skeleton className="ml-auto h-9 w-28 rounded-xl" />
         </div>
       ))}
     </div>
@@ -55,7 +58,7 @@ function TableSkeleton() {
 
 function EmptyState() {
   return (
-    <div className="flex flex-col items-center justify-center gap-3 px-6 py-16 text-center">
+    <div className="flex flex-col items-center justify-center gap-3 px-6 py-10 text-center">
       <div className="flex h-12 w-12 items-center justify-center rounded-full bg-slate-100 dark:bg-slate-800">
         <ReceiptText
           className="h-6 w-6 text-muted-foreground"
@@ -96,19 +99,21 @@ export default function FeeTable({
   }
 
   return (
-    <div className="rounded-xl border border-slate-200 bg-white dark:border-slate-800 dark:bg-slate-950">
-      <Table>
+    <div className="max-h-[65vh] overflow-auto rounded-xl border border-slate-200 bg-white dark:border-slate-800 dark:bg-slate-950">
+      <table className="w-full caption-bottom text-sm">
         <TableHeader>
           <TableRow>
-            <TableHead>Student</TableHead>
-            <TableHead>Batch</TableHead>
-            <TableHead>Month</TableHead>
-            <TableHead>Amount</TableHead>
-            <TableHead>Paid</TableHead>
-            <TableHead>Balance</TableHead>
-            <TableHead>Due Date</TableHead>
-            <TableHead>Status</TableHead>
-            <TableHead className="text-right">Actions</TableHead>
+            <TableHead className={stickyHeadClass}>Student</TableHead>
+            <TableHead className={stickyHeadClass}>Batch</TableHead>
+            <TableHead className={stickyHeadClass}>Month</TableHead>
+            <TableHead className={stickyHeadClass}>Amount</TableHead>
+            <TableHead className={stickyHeadClass}>Paid</TableHead>
+            <TableHead className={stickyHeadClass}>Balance</TableHead>
+            <TableHead className={stickyHeadClass}>Due Date</TableHead>
+            <TableHead className={stickyHeadClass}>Status</TableHead>
+            <TableHead className={cn(stickyHeadClass, "text-right")}>
+              Actions
+            </TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -123,7 +128,7 @@ export default function FeeTable({
                     onClick={() => onViewStudent(row)}
                     className="flex items-center gap-3 text-left hover:underline"
                   >
-                    <Avatar className="h-8 w-8">
+                    <Avatar className="h-9 w-9">
                       <AvatarFallback>
                         {getInitials(row.studentName)}
                       </AvatarFallback>
@@ -177,7 +182,7 @@ export default function FeeTable({
             );
           })}
         </TableBody>
-      </Table>
+      </table>
     </div>
   );
 }

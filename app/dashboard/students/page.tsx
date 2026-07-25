@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { Plus } from "lucide-react";
+import { PageContainer } from "@/components/layout/page-container";
 import { PageHeader } from "@/components/layout/page-header";
 import StudentStats from "@/components/students/StudentStats";
 import StudentFilters from "@/components/students/StudentFilters";
@@ -114,7 +115,7 @@ export default function StudentsPage() {
   }
 
   return (
-    <div className="flex flex-col gap-6">
+    <PageContainer>
       <PageHeader
         title="Students"
         description="Manage student records, attendance, marks and fee information."
@@ -159,6 +160,6 @@ export default function StudentsPage() {
         }}
         onConfirm={handleConfirmDelete}
       />
-    </div>
+    </PageContainer>
   );
 }

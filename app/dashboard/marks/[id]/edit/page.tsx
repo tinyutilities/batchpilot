@@ -5,6 +5,7 @@ import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import { ClipboardX } from "lucide-react";
 import { toast } from "sonner";
+import { PageContainer } from "@/components/layout/page-container";
 import { PageHeader } from "@/components/layout/page-header";
 import { Button } from "@/components/ui/button";
 import MarksForm from "@/components/marks/MarksForm";
@@ -23,9 +24,9 @@ export default function EditTestPage() {
 
   if (!test) {
     return (
-      <div className="flex flex-col gap-8">
+      <PageContainer className="gap-6">
         <PageHeader title="Edit Test" description="Update a test's details." />
-        <div className="flex flex-col items-center justify-center gap-3 rounded-2xl border border-slate-200 bg-white px-6 py-16 text-center dark:border-slate-800 dark:bg-slate-950">
+        <div className="flex flex-col items-center justify-center gap-3 rounded-2xl border border-slate-200 bg-white px-6 py-10 text-center dark:border-slate-800 dark:bg-slate-950">
           <div className="flex h-12 w-12 items-center justify-center rounded-full bg-slate-100 dark:bg-slate-800">
             <ClipboardX
               className="h-6 w-6 text-muted-foreground"
@@ -43,7 +44,7 @@ export default function EditTestPage() {
             <Link href="/dashboard/marks">Back to Marks</Link>
           </Button>
         </div>
-      </div>
+      </PageContainer>
     );
   }
 
@@ -70,7 +71,7 @@ export default function EditTestPage() {
   }
 
   return (
-    <div className="flex flex-col gap-8">
+    <PageContainer className="gap-6">
       <PageHeader
         title={`Edit ${test.name}`}
         description="Update this test's details."
@@ -84,6 +85,6 @@ export default function EditTestPage() {
         onSubmit={handleUpdate}
         onCancel={handleCancel}
       />
-    </div>
+    </PageContainer>
   );
 }

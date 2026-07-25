@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { ChevronDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -14,6 +15,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { FormSection } from "@/components/forms/form-section";
+import { cn } from "@/lib/utils";
 import type { Gender, StudentFormData, StudentStatus } from "@/types/student";
 import type { Batch } from "@/types/batch";
 
@@ -45,6 +47,8 @@ const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 type FormErrors = Partial<Record<keyof StudentFormData, string>>;
 
+const OPTIONAL_FIELD_KEYS: (keyof StudentFormData)[] = ["email"];
+
 export default function StudentForm({
   batches,
   initialValues,
@@ -58,6 +62,13 @@ export default function StudentForm({
     ...initialValues,
   });
   const [errors, setErrors] = useState<FormErrors>({});
+  // Most of this form is optional now — collapsed by default so the only
+  // thing a teacher has to look at up front is what's actually required.
+  // Editing an existing student (which may already have these details
+  // filled in) opens it expanded.
+  const [showMoreDetails, setShowMoreDetails] = useState(
+    Boolean(initialValues),
+  );
 
   function updateField<K extends keyof StudentFormData>(
     key: K,
@@ -79,25 +90,21 @@ export default function StudentForm({
       nextErrors.firstName = "First name is required.";
     if (!formData.lastName.trim())
       nextErrors.lastName = "Last name is required.";
-    if (!formData.email.trim()) {
-      nextErrors.email = "Email is required.";
-    } else if (!emailPattern.test(formData.email.trim())) {
+    if (!formData.batchId) nextErrors.batchId = "Select a batch.";
+
+    // Email isn't required, but if one's provided it should be valid.
+    if (formData.email.trim() && !emailPattern.test(formData.email.trim())) {
       nextErrors.email = "Enter a valid email address.";
     }
-    if (!formData.phone.trim())
-      nextErrors.phone = "Student phone number is required.";
-    if (!formData.dateOfBirth)
-      nextErrors.dateOfBirth = "Date of birth is required.";
-    if (!formData.guardianName.trim())
-      nextErrors.guardianName = "Guardian name is required.";
-    if (!formData.guardianPhone.trim())
-      nextErrors.guardianPhone = "Guardian phone number is required.";
-    if (!formData.address.trim())
-      nextErrors.address = "Address is required.";
-    if (!formData.batchId) nextErrors.batchId = "Select a batch.";
-    if (!formData.school.trim()) nextErrors.school = "School is required.";
 
     setErrors(nextErrors);
+
+    // If an error landed in the collapsed optional section, expand it so
+    // the teacher can actually see and fix it.
+    if (OPTIONAL_FIELD_KEYS.some((key) => nextErrors[key])) {
+      setShowMoreDetails(true);
+    }
+
     return Object.keys(nextErrors).length === 0;
   }
 
@@ -108,18 +115,18 @@ export default function StudentForm({
   }
 
   return (
-    <Card className="rounded-2xl border-slate-200 shadow-sm dark:border-slate-800">
-      <CardContent className="p-6 sm:p-8">
+    <Card className="[--card-spacing:--spacing(5)] rounded-2xl border-slate-200 shadow-sm sm:[--card-spacing:--spacing(6)] dark:border-slate-800">
+      <CardContent>
         <form
           onSubmit={handleSubmit}
           noValidate
-          className="flex flex-col gap-8"
+          className="flex flex-col gap-6"
         >
           <FormSection
-            title="Personal Information"
-            description="Basic details about the student."
+            title="Essentials"
+            description="Everything needed to add this student — the rest can be filled in later."
           >
-            <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
               <div className="flex flex-col gap-2">
                 <Label htmlFor="firstName">First Name *</Label>
                 <Input
@@ -154,157 +161,7 @@ export default function StudentForm({
                 )}
               </div>
 
-              <div className="flex flex-col gap-2">
-                <Label htmlFor="gender">Gender</Label>
-                <Select
-                  value={formData.gender}
-                  onValueChange={(value) =>
-                    updateField("gender", value as Gender)
-                  }
-                >
-                  <SelectTrigger id="gender" className="h-11 rounded-xl">
-                    <SelectValue placeholder="Select gender" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="male">Male</SelectItem>
-                    <SelectItem value="female">Female</SelectItem>
-                    <SelectItem value="other">Other</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-
-              <div className="flex flex-col gap-2">
-                <Label htmlFor="dateOfBirth">Date of Birth *</Label>
-                <Input
-                  id="dateOfBirth"
-                  type="date"
-                  value={formData.dateOfBirth}
-                  onChange={(e) =>
-                    updateField("dateOfBirth", e.target.value)
-                  }
-                  aria-invalid={Boolean(errors.dateOfBirth)}
-                  className="h-11 rounded-xl"
-                />
-                {errors.dateOfBirth && (
-                  <p className="text-xs text-destructive">
-                    {errors.dateOfBirth}
-                  </p>
-                )}
-              </div>
-            </div>
-          </FormSection>
-
-          <FormSection
-            title="Contact Information"
-            description="How to reach the student."
-          >
-            <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
-              <div className="flex flex-col gap-2">
-                <Label htmlFor="email">Email *</Label>
-                <Input
-                  id="email"
-                  type="email"
-                  placeholder="student@example.com"
-                  autoComplete="email"
-                  value={formData.email}
-                  onChange={(e) => updateField("email", e.target.value)}
-                  aria-invalid={Boolean(errors.email)}
-                  className="h-11 rounded-xl"
-                />
-                {errors.email && (
-                  <p className="text-xs text-destructive">{errors.email}</p>
-                )}
-              </div>
-
-              <div className="flex flex-col gap-2">
-                <Label htmlFor="phone">Student Phone *</Label>
-                <Input
-                  id="phone"
-                  type="tel"
-                  placeholder="9876543210"
-                  autoComplete="tel"
-                  value={formData.phone}
-                  onChange={(e) => updateField("phone", e.target.value)}
-                  aria-invalid={Boolean(errors.phone)}
-                  className="h-11 rounded-xl"
-                />
-                {errors.phone && (
-                  <p className="text-xs text-destructive">{errors.phone}</p>
-                )}
-              </div>
-            </div>
-
-            <div className="flex flex-col gap-2">
-              <Label htmlFor="address">Address *</Label>
-              <Textarea
-                id="address"
-                placeholder="Street, city, and postal code"
-                autoComplete="street-address"
-                value={formData.address}
-                onChange={(e) => updateField("address", e.target.value)}
-                rows={3}
-                aria-invalid={Boolean(errors.address)}
-                className="rounded-xl"
-              />
-              {errors.address && (
-                <p className="text-xs text-destructive">{errors.address}</p>
-              )}
-            </div>
-          </FormSection>
-
-          <FormSection
-            title="Guardian Information"
-            description="Primary guardian contact for this student."
-          >
-            <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
-              <div className="flex flex-col gap-2">
-                <Label htmlFor="guardianName">Guardian Name *</Label>
-                <Input
-                  id="guardianName"
-                  autoComplete="name"
-                  value={formData.guardianName}
-                  onChange={(e) =>
-                    updateField("guardianName", e.target.value)
-                  }
-                  aria-invalid={Boolean(errors.guardianName)}
-                  className="h-11 rounded-xl"
-                />
-                {errors.guardianName && (
-                  <p className="text-xs text-destructive">
-                    {errors.guardianName}
-                  </p>
-                )}
-              </div>
-
-              <div className="flex flex-col gap-2">
-                <Label htmlFor="guardianPhone">Guardian Phone *</Label>
-                <Input
-                  id="guardianPhone"
-                  type="tel"
-                  placeholder="9876500000"
-                  autoComplete="tel"
-                  value={formData.guardianPhone}
-                  onChange={(e) =>
-                    updateField("guardianPhone", e.target.value)
-                  }
-                  aria-invalid={Boolean(errors.guardianPhone)}
-                  className="h-11 rounded-xl"
-                />
-                {errors.guardianPhone && (
-                  <p className="text-xs text-destructive">
-                    {errors.guardianPhone}
-                  </p>
-                )}
-              </div>
-            </div>
-          </FormSection>
-
-          <FormSection
-            title="Academic Information"
-            description="Batch, school and enrollment status."
-          >
-            <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
-              <div className="flex flex-col gap-2">
+              <div className="flex flex-col gap-2 sm:col-span-2">
                 <Label htmlFor="batchId">Batch *</Label>
                 <Select
                   value={formData.batchId}
@@ -312,7 +169,7 @@ export default function StudentForm({
                 >
                   <SelectTrigger
                     id="batchId"
-                    className="h-11 rounded-xl"
+                    className="h-11 w-full rounded-xl sm:max-w-sm"
                     aria-invalid={Boolean(errors.batchId)}
                   >
                     <SelectValue placeholder="Select a batch" />
@@ -331,44 +188,199 @@ export default function StudentForm({
                   </p>
                 )}
               </div>
-
-              <div className="flex flex-col gap-2">
-                <Label htmlFor="school">School *</Label>
-                <Input
-                  id="school"
-                  placeholder="e.g. Delhi Public School"
-                  autoComplete="organization"
-                  value={formData.school}
-                  onChange={(e) => updateField("school", e.target.value)}
-                  aria-invalid={Boolean(errors.school)}
-                  className="h-11 rounded-xl"
-                />
-                {errors.school && (
-                  <p className="text-xs text-destructive">{errors.school}</p>
-                )}
-              </div>
-
-              <div className="flex flex-col gap-2">
-                <Label htmlFor="status">Status</Label>
-                <Select
-                  value={formData.status}
-                  onValueChange={(value) =>
-                    updateField("status", value as StudentStatus)
-                  }
-                >
-                  <SelectTrigger id="status" className="h-11 rounded-xl">
-                    <SelectValue placeholder="Select status" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="active">Active</SelectItem>
-                    <SelectItem value="inactive">Inactive</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
             </div>
           </FormSection>
 
-          <div className="flex flex-col-reverse gap-3 pt-2 sm:flex-row sm:justify-end">
+          <div className="flex flex-col gap-5">
+            <button
+              type="button"
+              onClick={() => setShowMoreDetails((prev) => !prev)}
+              aria-expanded={showMoreDetails}
+              className="flex items-center gap-2 self-start text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
+            >
+              <ChevronDown
+                className={cn(
+                  "h-4 w-4 transition-transform",
+                  showMoreDetails && "rotate-180",
+                )}
+                aria-hidden="true"
+              />
+              {showMoreDetails
+                ? "Hide additional details"
+                : "Add more details (optional)"}
+            </button>
+
+            {showMoreDetails && (
+              <div className="flex flex-col gap-6">
+                <FormSection
+                  title="Personal Information"
+                  description="Optional — basic details about the student."
+                >
+                  <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                    <div className="flex flex-col gap-2">
+                      <Label htmlFor="gender">Gender</Label>
+                      <Select
+                        value={formData.gender}
+                        onValueChange={(value) =>
+                          updateField("gender", value as Gender)
+                        }
+                      >
+                        <SelectTrigger id="gender" className="h-11 rounded-xl">
+                          <SelectValue placeholder="Select gender" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="male">Male</SelectItem>
+                          <SelectItem value="female">Female</SelectItem>
+                          <SelectItem value="other">Other</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    <div className="flex flex-col gap-2">
+                      <Label htmlFor="dateOfBirth">Date of Birth</Label>
+                      <Input
+                        id="dateOfBirth"
+                        type="date"
+                        value={formData.dateOfBirth}
+                        onChange={(e) =>
+                          updateField("dateOfBirth", e.target.value)
+                        }
+                        className="h-11 rounded-xl"
+                      />
+                    </div>
+                  </div>
+                </FormSection>
+
+                <FormSection
+                  title="Contact Information"
+                  description="Optional — how to reach the student."
+                >
+                  <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                    <div className="flex flex-col gap-2">
+                      <Label htmlFor="email">Email</Label>
+                      <Input
+                        id="email"
+                        type="email"
+                        placeholder="student@example.com"
+                        autoComplete="email"
+                        value={formData.email}
+                        onChange={(e) => updateField("email", e.target.value)}
+                        aria-invalid={Boolean(errors.email)}
+                        className="h-11 rounded-xl"
+                      />
+                      {errors.email && (
+                        <p className="text-xs text-destructive">
+                          {errors.email}
+                        </p>
+                      )}
+                    </div>
+
+                    <div className="flex flex-col gap-2">
+                      <Label htmlFor="phone">Student Phone</Label>
+                      <Input
+                        id="phone"
+                        type="tel"
+                        placeholder="9876543210"
+                        autoComplete="tel"
+                        value={formData.phone}
+                        onChange={(e) => updateField("phone", e.target.value)}
+                        className="h-11 rounded-xl"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="flex flex-col gap-2">
+                    <Label htmlFor="address">Address</Label>
+                    <Textarea
+                      id="address"
+                      placeholder="Street, city, and postal code"
+                      autoComplete="street-address"
+                      value={formData.address}
+                      onChange={(e) => updateField("address", e.target.value)}
+                      rows={3}
+                      className="rounded-xl"
+                    />
+                  </div>
+                </FormSection>
+
+                <FormSection
+                  title="Guardian Information"
+                  description="Optional — primary guardian contact for this student."
+                >
+                  <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                    <div className="flex flex-col gap-2">
+                      <Label htmlFor="guardianName">Guardian Name</Label>
+                      <Input
+                        id="guardianName"
+                        autoComplete="name"
+                        value={formData.guardianName}
+                        onChange={(e) =>
+                          updateField("guardianName", e.target.value)
+                        }
+                        className="h-11 rounded-xl"
+                      />
+                    </div>
+
+                    <div className="flex flex-col gap-2">
+                      <Label htmlFor="guardianPhone">Guardian Phone</Label>
+                      <Input
+                        id="guardianPhone"
+                        type="tel"
+                        placeholder="9876500000"
+                        autoComplete="tel"
+                        value={formData.guardianPhone}
+                        onChange={(e) =>
+                          updateField("guardianPhone", e.target.value)
+                        }
+                        className="h-11 rounded-xl"
+                      />
+                    </div>
+                  </div>
+                </FormSection>
+
+                <FormSection
+                  title="Academic Information"
+                  description="Optional — school and enrollment status."
+                >
+                  <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                    <div className="flex flex-col gap-2">
+                      <Label htmlFor="school">School</Label>
+                      <Input
+                        id="school"
+                        placeholder="e.g. Delhi Public School"
+                        autoComplete="organization"
+                        value={formData.school}
+                        onChange={(e) =>
+                          updateField("school", e.target.value)
+                        }
+                        className="h-11 rounded-xl"
+                      />
+                    </div>
+
+                    <div className="flex flex-col gap-2">
+                      <Label htmlFor="status">Status</Label>
+                      <Select
+                        value={formData.status}
+                        onValueChange={(value) =>
+                          updateField("status", value as StudentStatus)
+                        }
+                      >
+                        <SelectTrigger id="status" className="h-11 rounded-xl">
+                          <SelectValue placeholder="Select status" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="active">Active</SelectItem>
+                          <SelectItem value="inactive">Inactive</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
+                </FormSection>
+              </div>
+            )}
+          </div>
+
+          <div className="flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
             <Button
               type="button"
               variant="outline"

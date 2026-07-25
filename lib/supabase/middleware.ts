@@ -1,5 +1,6 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
+import { isAuthorizedAdminEmail } from "@/lib/admin/access";
 
 export async function updateSession(request: NextRequest) {
   if (!process.env.NEXT_PUBLIC_SUPABASE_URL) {
@@ -55,6 +56,16 @@ export async function updateSession(request: NextRequest) {
     if (!user && !isPublicRoute) {
       const url = request.nextUrl.clone();
       url.pathname = "/auth/login";
+      return NextResponse.redirect(url);
+    }
+
+    const isAdminRoute =
+      request.nextUrl.pathname === "/admin" ||
+      request.nextUrl.pathname.startsWith("/admin/");
+
+    if (user && isAdminRoute && !isAuthorizedAdminEmail(user.email)) {
+      const url = request.nextUrl.clone();
+      url.pathname = "/dashboard";
       return NextResponse.redirect(url);
     }
 

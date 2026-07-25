@@ -57,7 +57,7 @@ export async function signUp(email: string, password: string) {
     throw new Error(error.message)
   }
 
-  redirect('/login?message=Check your email to confirm your account')
+  redirect('/auth/login?message=Check your email to confirm your account')
 }
 
 export async function signOut() {
@@ -69,5 +69,5 @@ export async function signOut() {
     throw new Error(error.message)
   }
 
-  redirect('/login')
+  redirect('/auth/login')
 }

@@ -9,6 +9,14 @@ export async function GET(request: NextRequest) {
   // `?code=` when the user cancels consent or the provider rejects the request.
   const oauthError = searchParams.get('error_description') ?? searchParams.get('error')
 
+  // TEMP DEBUG LOGGING — remove after diagnosing SSL redirect issue
+  console.log('[auth/callback DEBUG] request.url:', request.url)
+  console.log('[auth/callback DEBUG] origin:', origin)
+  console.log('[auth/callback DEBUG] NODE_ENV:', process.env.NODE_ENV)
+  console.log('[auth/callback DEBUG] forwardedHost (raw header):', request.headers.get('x-forwarded-host'))
+  console.log('[auth/callback DEBUG] next:', next)
+  // END TEMP DEBUG LOGGING
+
   if (code) {
     const supabase = await createClient()
     const { error } = await supabase.auth.exchangeCodeForSession(code)
@@ -17,13 +25,18 @@ export async function GET(request: NextRequest) {
       const forwardedHost = request.headers.get('x-forwarded-host')
       const isLocalEnv = process.env.NODE_ENV === 'development'
 
+      let finalUrl: string
       if (isLocalEnv) {
-        return NextResponse.redirect(`${origin}${next}`)
+        finalUrl = `${origin}${next}`
       } else if (forwardedHost) {
-        return NextResponse.redirect(`https://${forwardedHost}${next}`)
+        finalUrl = `https://${forwardedHost}${next}`
       } else {
-        return NextResponse.redirect(`${origin}${next}`)
+        finalUrl = `${origin}${next}`
       }
+      // TEMP DEBUG LOGGING — remove after diagnosing SSL redirect issue
+      console.log('[auth/callback DEBUG] final redirect URL:', finalUrl)
+      // END TEMP DEBUG LOGGING
+      return NextResponse.redirect(finalUrl)
     }
 
     // exchangeCodeForSession() returns an AuthError (often an AuthApiError),

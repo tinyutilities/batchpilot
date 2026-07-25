@@ -97,18 +97,18 @@ export default function MarksForm({
   }
 
   return (
-    <Card className="rounded-2xl border-slate-200 shadow-sm dark:border-slate-800">
-      <CardContent className="p-6 sm:p-8">
+    <Card className="[--card-spacing:--spacing(5)] rounded-2xl border-slate-200 shadow-sm sm:[--card-spacing:--spacing(6)] dark:border-slate-800">
+      <CardContent>
         <form
           onSubmit={handleSubmit}
           noValidate
-          className="flex flex-col gap-8"
+          className="flex flex-col gap-6"
         >
           <FormSection
             title="Test Details"
             description="Basic information about this test."
           >
-            <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
               <div className="flex flex-col gap-2">
                 <Label htmlFor="name">Test Name *</Label>
                 <Input
@@ -217,7 +217,7 @@ export default function MarksForm({
             </div>
           </FormSection>
 
-          <div className="flex flex-col-reverse gap-3 pt-2 sm:flex-row sm:justify-end">
+          <div className="flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
             <Button
               type="button"
               variant="outline"

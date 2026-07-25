@@ -9,6 +9,7 @@ import {
   Clock3,
 } from "lucide-react";
 import { StatCard } from "@/components/dashboard/stat-card";
+import { StatCardGrid } from "@/components/dashboard/stat-card-grid";
 import type { DashboardStatsData } from "@/types/dashboard";
 
 interface DashboardStatsProps {
@@ -17,7 +18,7 @@ interface DashboardStatsProps {
 
 export default function DashboardStats({ stats }: DashboardStatsProps) {
   return (
-    <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+    <StatCardGrid>
       <StatCard
         title="Total Students"
         value={stats.totalStudents}
@@ -38,8 +39,7 @@ export default function DashboardStats({ stats }: DashboardStatsProps) {
       />
       <StatCard
         title="Attendance Today"
-        value={`${stats.attendanceTodayPercentage}%`}
-        description={`${stats.attendanceTodayMarked}/${stats.attendanceTodayTotal} marked`}
+        value={`${stats.attendanceTodayMarked}/${stats.attendanceTodayTotal} marked`}
         icon={<ClipboardCheck className="h-5 w-5" />}
         color="violet"
       />
@@ -52,7 +52,6 @@ export default function DashboardStats({ stats }: DashboardStatsProps) {
       <StatCard
         title="Pending Fees"
         value={`₹${stats.pendingFees.toLocaleString("en-IN")}`}
-        description="Due this month"
         icon={<Clock3 className="h-5 w-5" />}
         color="amber"
       />
@@ -68,6 +67,6 @@ export default function DashboardStats({ stats }: DashboardStatsProps) {
         icon={<TrendingUp className="h-5 w-5" />}
         color="blue"
       />
-    </div>
+    </StatCardGrid>
   );
 }

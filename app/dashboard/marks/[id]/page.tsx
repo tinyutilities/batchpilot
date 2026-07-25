@@ -15,6 +15,7 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
+import { PageContainer } from "@/components/layout/page-container";
 import { PageHeader } from "@/components/layout/page-header";
 import { StatCard } from "@/components/dashboard/stat-card";
 import MarksEntryForm from "@/components/marks/MarksEntryForm";
@@ -62,12 +63,12 @@ export default function TestDetailPage() {
 
   if (!test || !summary) {
     return (
-      <div className="flex flex-col gap-8">
+      <PageContainer className="gap-6">
         <PageHeader
           title="Test not found"
           description="This test may have been removed."
         />
-        <div className="flex flex-col items-center justify-center gap-3 rounded-2xl border border-slate-200 bg-white px-6 py-16 text-center dark:border-slate-800 dark:bg-slate-950">
+        <div className="flex flex-col items-center justify-center gap-3 rounded-2xl border border-slate-200 bg-white px-6 py-10 text-center dark:border-slate-800 dark:bg-slate-950">
           <div className="flex h-12 w-12 items-center justify-center rounded-full bg-slate-100 dark:bg-slate-800">
             <ClipboardX
               className="h-6 w-6 text-muted-foreground"
@@ -84,7 +85,7 @@ export default function TestDetailPage() {
             <Link href="/dashboard/marks">Back to Marks</Link>
           </Button>
         </div>
-      </div>
+      </PageContainer>
     );
   }
 
@@ -111,7 +112,7 @@ export default function TestDetailPage() {
   }
 
   return (
-    <div className="flex flex-col gap-8">
+    <PageContainer className="gap-6">
       <PageHeader
         title={test.name}
         description={`${test.subject} · ${summary.batchName} · ${format(
@@ -180,6 +181,6 @@ export default function TestDetailPage() {
         onOpenChange={setIsDeleteOpen}
         onConfirm={handleConfirmDelete}
       />
-    </div>
+    </PageContainer>
   );
 }

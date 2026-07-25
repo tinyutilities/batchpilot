@@ -1,5 +1,6 @@
 import { Users, UserCheck, CalendarCheck, Wallet } from "lucide-react";
 import { StatCard } from "@/components/dashboard/stat-card";
+import { StatCardGrid } from "@/components/dashboard/stat-card-grid";
 import type { StudentStatsProps } from "@/types/student";
 
 export default function StudentStats({ stats }: StudentStatsProps) {
@@ -9,7 +10,7 @@ export default function StudentStats({ stats }: StudentStatsProps) {
       : 0;
 
   return (
-    <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+    <StatCardGrid>
       <StatCard
         title="Total Students"
         value={stats.totalStudents}
@@ -38,6 +39,6 @@ export default function StudentStats({ stats }: StudentStatsProps) {
         icon={<Wallet className="h-5 w-5" />}
         color="amber"
       />
-    </div>
+    </StatCardGrid>
   );
 }

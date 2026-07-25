@@ -5,6 +5,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
 import { toast } from "sonner";
+import { PageContainer } from "@/components/layout/page-container";
 import { PageHeader } from "@/components/layout/page-header";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -70,7 +71,7 @@ function MarkAttendanceContent() {
   }
 
   return (
-    <div className="flex flex-col gap-8">
+    <PageContainer className="gap-6">
       <div>
         <Button variant="ghost" size="sm" asChild className="-ml-2 mb-2">
           <Link href="/dashboard/attendance">
@@ -84,8 +85,8 @@ function MarkAttendanceContent() {
         />
       </div>
 
-      <Card className="rounded-2xl border-slate-200 shadow-sm dark:border-slate-800">
-        <CardContent className="flex flex-col gap-4 p-6 sm:flex-row sm:items-end sm:p-8">
+      <Card className="[--card-spacing:--spacing(5)] rounded-2xl border-slate-200 shadow-sm sm:[--card-spacing:--spacing(6)] dark:border-slate-800">
+        <CardContent className="flex flex-col gap-4 sm:flex-row sm:items-end">
           <div className="flex flex-1 flex-col gap-2">
             <Label htmlFor="mark-batch">Batch</Label>
             <Select value={batchId} onValueChange={setBatchId}>
@@ -115,7 +116,7 @@ function MarkAttendanceContent() {
       </Card>
 
       {!batchId ? (
-        <div className="flex flex-col items-center justify-center gap-3 rounded-2xl border border-slate-200 bg-white px-6 py-16 text-center dark:border-slate-800 dark:bg-slate-950">
+        <div className="flex flex-col items-center justify-center gap-3 rounded-2xl border border-slate-200 bg-white px-6 py-10 text-center dark:border-slate-800 dark:bg-slate-950">
           <p className="text-sm font-medium text-foreground">
             Select a batch to begin
           </p>
@@ -124,7 +125,7 @@ function MarkAttendanceContent() {
           </p>
         </div>
       ) : students.length === 0 ? (
-        <div className="flex flex-col items-center justify-center gap-3 rounded-2xl border border-slate-200 bg-white px-6 py-16 text-center dark:border-slate-800 dark:bg-slate-950">
+        <div className="flex flex-col items-center justify-center gap-3 rounded-2xl border border-slate-200 bg-white px-6 py-10 text-center dark:border-slate-800 dark:bg-slate-950">
           <p className="text-sm font-medium text-foreground">
             No students enrolled
           </p>
@@ -149,7 +150,7 @@ function MarkAttendanceContent() {
           onCancel={handleCancel}
         />
       )}
-    </div>
+    </PageContainer>
   );
 }
 

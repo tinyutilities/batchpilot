@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
+import { PageContainer } from "@/components/layout/page-container";
 import { PageHeader } from "@/components/layout/page-header";
 import MarksForm from "@/components/marks/MarksForm";
 import { createTest } from "@/lib/mock/marks";
@@ -25,7 +26,7 @@ export default function NewTestPage() {
   }
 
   return (
-    <div className="flex flex-col gap-8">
+    <PageContainer className="gap-6">
       <PageHeader
         title="Create Test"
         description="Set up a new test to start recording marks."
@@ -38,6 +39,6 @@ export default function NewTestPage() {
         onSubmit={handleCreate}
         onCancel={handleCancel}
       />
-    </div>
+    </PageContainer>
   );
 }

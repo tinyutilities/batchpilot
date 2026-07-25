@@ -10,6 +10,7 @@ import {
   Video,
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import {
   DropdownMenu,
@@ -18,7 +19,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { cn } from "@/lib/utils";
-import { formatBatchDays, formatBatchTime } from "@/lib/mock/batch";
+import { formatBatchSchedule } from "@/lib/mock/batch";
 import type { Batch } from "@/types/batch";
 
 interface BatchCardProps {
@@ -58,9 +59,9 @@ export default function BatchCard({
       onKeyDown={(e) => {
         if (e.key === "Enter") onView(batch);
       }}
-      className="cursor-pointer rounded-2xl border-slate-200 shadow-sm transition-shadow hover:shadow-md dark:border-slate-800"
+      className="[--card-spacing:--spacing(5)] cursor-pointer rounded-2xl border-slate-200 shadow-sm transition-shadow hover:shadow-md dark:border-slate-800"
     >
-      <CardContent className="flex flex-col gap-4 p-6">
+      <CardContent className="flex flex-col gap-4">
         <div className="flex items-start justify-between gap-3">
           <div className="flex flex-col gap-1">
             <div className="flex items-center gap-2">
@@ -76,20 +77,22 @@ export default function BatchCard({
               )}
             </div>
             <p className="text-sm text-muted-foreground">
-              {batch.subject} · {batch.teacherName}
+              {[batch.subject, batch.teacherName].filter(Boolean).join(" · ")}
             </p>
           </div>
 
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <button
+              <Button
                 type="button"
+                variant="ghost"
+                size="icon-sm"
                 aria-label={`Actions for ${batch.name}`}
                 onClick={(e) => e.stopPropagation()}
-                className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:bg-slate-100 hover:text-foreground dark:hover:bg-slate-800"
+                className="shrink-0 text-muted-foreground"
               >
                 <MoreHorizontal className="h-4 w-4" aria-hidden="true" />
-              </button>
+              </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" onClick={(e) => e.stopPropagation()}>
               <DropdownMenuItem onClick={() => onView(batch)}>
@@ -116,8 +119,7 @@ export default function BatchCard({
             className="h-4 w-4 shrink-0 text-slate-400"
             aria-hidden="true"
           />
-          {formatBatchDays(batch.days)} · {formatBatchTime(batch.startTime)} -{" "}
-          {formatBatchTime(batch.endTime)}
+          {formatBatchSchedule(batch.schedule)}
         </div>
 
         {batch.googleMeetLink && (
@@ -127,23 +129,30 @@ export default function BatchCard({
           </div>
         )}
 
-        <div className="flex flex-col gap-1.5">
-          <div className="flex items-center justify-between text-sm">
-            <span className="flex items-center gap-1.5 text-muted-foreground">
-              <Users className="h-4 w-4" aria-hidden="true" />
-              {enrolledCount} / {batch.capacity} students
-            </span>
-            <span className={cn("font-medium", text)}>
-              {capacityPercentage}%
-            </span>
+        {batch.capacity > 0 ? (
+          <div className="flex flex-col gap-1.5">
+            <div className="flex items-center justify-between text-sm">
+              <span className="flex items-center gap-1.5 text-muted-foreground">
+                <Users className="h-4 w-4" aria-hidden="true" />
+                {enrolledCount} / {batch.capacity} students
+              </span>
+              <span className={cn("font-medium", text)}>
+                {capacityPercentage}%
+              </span>
+            </div>
+            <div className="h-1.5 w-full overflow-hidden rounded-full bg-slate-100 dark:bg-slate-800">
+              <div
+                className={cn("h-full rounded-full", bar)}
+                style={{ width: `${Math.min(capacityPercentage, 100)}%` }}
+              />
+            </div>
           </div>
-          <div className="h-1.5 w-full overflow-hidden rounded-full bg-slate-100 dark:bg-slate-800">
-            <div
-              className={cn("h-full rounded-full", bar)}
-              style={{ width: `${Math.min(capacityPercentage, 100)}%` }}
-            />
-          </div>
-        </div>
+        ) : (
+          <span className="flex items-center gap-1.5 text-sm text-muted-foreground">
+            <Users className="h-4 w-4" aria-hidden="true" />
+            {enrolledCount} students · Unlimited capacity
+          </span>
+        )}
       </CardContent>
     </Card>
   );

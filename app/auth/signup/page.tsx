@@ -1,15 +1,16 @@
-'use client'
+"use client";
 
-import * as React from 'react'
-import Link from 'next/link'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
-import { Separator } from '@/components/ui/separator'
-import { Card, CardContent } from '@/components/ui/card'
-import { Logo } from '@/components/branding/logo'
-import { PageHeader } from '@/components/layout/page-header'
-import { createClient } from '@/lib/supabase/client'
+import * as React from "react";
+import Link from "next/link";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Separator } from "@/components/ui/separator";
+import { Card, CardContent } from "@/components/ui/card";
+import { toast } from "sonner";
+import { Logo } from "@/components/branding/logo";
+import { PageHeader } from "@/components/layout/page-header";
+import { createClient } from "@/lib/supabase/client";
 
 function GoogleIcon() {
   return (
@@ -31,33 +32,33 @@ function GoogleIcon() {
         fill="#EA4335"
       />
     </svg>
-  )
+  );
 }
 
 export default function SignupPage() {
-  const [fullName, setFullName] = React.useState('')
-  const [email, setEmail] = React.useState('')
-  const [password, setPassword] = React.useState('')
-  const [confirmPassword, setConfirmPassword] = React.useState('')
+  const [fullName, setFullName] = React.useState("");
+  const [email, setEmail] = React.useState("");
+  const [password, setPassword] = React.useState("");
+  const [confirmPassword, setConfirmPassword] = React.useState("");
 
   function handleSubmit(e: React.FormEvent) {
-    e.preventDefault()
+    e.preventDefault();
     // Backend authentication to be added later
   }
 
   async function handleGoogleSignIn() {
-    const supabase = createClient()
+    const supabase = createClient();
 
     const { error } = await supabase.auth.signInWithOAuth({
-      provider: 'google',
+      provider: "google",
       options: {
         redirectTo: `${window.location.origin}/auth/callback`,
       },
-    })
+    });
 
     if (error) {
-      console.error(error)
-      alert(error.message)
+      console.error(error);
+      toast.error(error.message);
     }
   }
 
@@ -154,7 +155,7 @@ export default function SignupPage() {
             </Button>
 
             <p className="mt-6 text-center text-sm text-muted-foreground">
-              Already have an account?{' '}
+              Already have an account?{" "}
               <Link
                 href="/auth/login"
                 className="font-medium text-indigo-600 hover:underline dark:text-indigo-400"
@@ -166,5 +167,5 @@ export default function SignupPage() {
         </Card>
       </div>
     </div>
-  )
+  );
 }

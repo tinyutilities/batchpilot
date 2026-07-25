@@ -11,7 +11,7 @@ import type {
   TodayAttendanceSummary,
 } from "@/types/attendance";
 import type { WeekDay } from "@/types/batch";
-import { getBatchById, mockBatches } from "@/lib/mock/batch";
+import { batchMeetsOnDay, getBatchById, mockBatches } from "@/lib/mock/batch";
 import { mockStudents } from "@/lib/mock/student";
 import { seededRandom, toDateKey, toMonthKey } from "@/lib/utils";
 import { USE_DEMO_DATA } from "@/lib/config";
@@ -51,7 +51,7 @@ function generateSeedAttendance(): AttendanceRecord[] {
     for (let offset = 1; offset <= ATTENDANCE_HISTORY_DAYS; offset++) {
       const date = new Date(today);
       date.setDate(date.getDate() - offset);
-      if (!batch.days.includes(getWeekDay(date))) continue;
+      if (!batchMeetsOnDay(batch, getWeekDay(date))) continue;
 
       const roll = seededRandom(studentIndex * 1000 + offset);
 
@@ -224,7 +224,7 @@ export function getTodayAttendanceSummary(): TodayAttendanceSummary {
     (record) => record.date === todayKey
   );
   const scheduledBatches = mockBatches.filter(
-    (batch) => batch.status === "active" && batch.days.includes(getWeekDay(today))
+    (batch) => batch.status === "active" && batchMeetsOnDay(batch, getWeekDay(today))
   );
   const markedBatchIds = new Set(todaysRecords.map((record) => record.batchId));
 
@@ -242,11 +242,15 @@ export function getTodayAttendanceSummary(): TodayAttendanceSummary {
   };
 }
 
-export function getScheduledBatchesForDate(date: string) {
+export function getWeekDayForDateKey(date: string): WeekDay {
   const [year, month, day] = date.split("-").map(Number);
-  const weekDay = getWeekDay(new Date(year, month - 1, day));
+  return getWeekDay(new Date(year, month - 1, day));
+}
+
+export function getScheduledBatchesForDate(date: string) {
+  const weekDay = getWeekDayForDateKey(date);
   return mockBatches.filter(
-    (batch) => batch.status === "active" && batch.days.includes(weekDay)
+    (batch) => batch.status === "active" && batchMeetsOnDay(batch, weekDay)
   );
 }
 

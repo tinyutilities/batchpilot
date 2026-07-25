@@ -24,11 +24,11 @@ export function EmptyState({
   return (
     <Card
       className={cn(
-        'border-dashed transition-colors hover:border-gray-300',
+        '[--card-spacing:--spacing(0)] border-dashed transition-colors hover:border-gray-300',
         className
       )}
     >
-      <CardContent className="flex flex-col items-center justify-center gap-4 px-6 py-16 text-center">
+      <CardContent className="flex flex-col items-center justify-center gap-4 px-6 py-10 text-center">
         {icon && (
           <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-indigo-50 text-indigo-600 transition-transform duration-300 hover:scale-105 dark:bg-indigo-500/10 dark:text-indigo-400">
             {icon}

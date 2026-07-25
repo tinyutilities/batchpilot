@@ -42,16 +42,16 @@ export function StatCard({
     >
       <Card
         className={cn(
-          'rounded-2xl border-gray-200 bg-white shadow-sm transition-shadow hover:shadow-md dark:bg-gray-900',
+          '[--card-spacing:--spacing(4)] rounded-2xl border-gray-200 bg-white shadow-sm transition-shadow hover:shadow-md dark:bg-gray-900',
           className
         )}
       >
-        <CardContent className="flex items-start justify-between gap-4 p-6">
-          <div className="flex flex-col gap-1.5">
+        <CardContent className="flex min-h-18 items-start justify-between gap-3">
+          <div className="flex flex-col gap-1">
             <p className="text-sm font-medium text-muted-foreground">
               {title}
             </p>
-            <p className="text-2xl font-semibold tracking-tight text-gray-900 dark:text-white">
+            <p className="text-xl font-semibold tracking-tight text-gray-900 dark:text-white">
               {value}
             </p>
             {description && (
@@ -61,7 +61,7 @@ export function StatCard({
 
           <div
             className={cn(
-              'flex h-11 w-11 shrink-0 items-center justify-center rounded-full',
+              'flex h-9 w-9 shrink-0 items-center justify-center rounded-full',
               colorStyles[color]
             )}
           >

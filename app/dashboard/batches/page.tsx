@@ -5,19 +5,17 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { Layers, Plus } from "lucide-react";
 import { toast } from "sonner";
+import { PageContainer } from "@/components/layout/page-container";
 import { PageHeader } from "@/components/layout/page-header";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
+import { ModuleAlertBanner } from "@/components/dashboard/ModuleAlertBanner";
 import BatchStats from "@/components/batches/BatchStats";
 import BatchFilters from "@/components/batches/BatchFilters";
 import BatchCard from "@/components/batches/BatchCard";
 import BatchDeleteDialog from "@/components/batches/BatchDeleteDialog";
-import {
-  mockBatches,
-  computeBatchStats,
-  getStudentsByBatch,
-  deleteBatch,
-} from "@/lib/mock/batch";
+import { mockBatches, computeBatchStats, deleteBatch } from "@/lib/mock/batch";
+import { mockStudents } from "@/lib/mock/student";
 import type { Batch } from "@/types/batch";
 
 export default function BatchesPage() {
@@ -32,7 +30,7 @@ export default function BatchesPage() {
   const [selectedSort, setSelectedSort] = useState("name-asc");
 
   const [batchPendingDelete, setBatchPendingDelete] = useState<Batch | null>(
-    null
+    null,
   );
 
   useEffect(() => {
@@ -42,11 +40,30 @@ export default function BatchesPage() {
 
   const stats = useMemo(() => computeBatchStats(batches), [batches]);
 
-  const subjects = useMemo(() => {
-    return Array.from(new Set(batches.map((batch) => batch.subject))).sort(
-      (a, b) => a.localeCompare(b)
-    );
+  // Built once per render instead of re-filtering the full student list on
+  // every sort comparison and every card — same live-data staleness
+  // characteristics as the rest of this page (recomputes with `batches`,
+  // not on every mockStudents mutation elsewhere), just without the
+  // repeated O(n) scans.
+  const enrollmentCounts = useMemo(() => {
+    const counts = new Map<string, number>();
+    for (const student of mockStudents) {
+      counts.set(student.batchId, (counts.get(student.batchId) ?? 0) + 1);
+    }
+    return counts;
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [batches]);
+
+  const subjects = useMemo(() => {
+    return Array.from(
+      new Set(batches.map((batch) => batch.subject).filter(Boolean)),
+    ).sort((a, b) => a.localeCompare(b));
+  }, [batches]);
+
+  const emptyBatches = useMemo(
+    () => batches.filter((batch) => !enrollmentCounts.get(batch.id)),
+    [batches, enrollmentCounts],
+  );
 
   const filteredBatches = useMemo(() => {
     const query = searchTerm.trim().toLowerCase();
@@ -75,16 +92,23 @@ export default function BatchesPage() {
           return b.name.localeCompare(a.name);
         case "enrolled-desc":
           return (
-            getStudentsByBatch(b.id).length - getStudentsByBatch(a.id).length
+            (enrollmentCounts.get(b.id) ?? 0) -
+            (enrollmentCounts.get(a.id) ?? 0)
           );
         case "enrolled-asc":
           return (
-            getStudentsByBatch(a.id).length - getStudentsByBatch(b.id).length
+            (enrollmentCounts.get(a.id) ?? 0) -
+            (enrollmentCounts.get(b.id) ?? 0)
           );
+        // 0 means unlimited — treat as the highest capacity, not the lowest.
         case "capacity-desc":
-          return b.capacity - a.capacity;
+          return (
+            (b.capacity || Infinity) - (a.capacity || Infinity)
+          );
         case "capacity-asc":
-          return a.capacity - b.capacity;
+          return (
+            (a.capacity || Infinity) - (b.capacity || Infinity)
+          );
         case "newest":
           return (
             new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
@@ -99,7 +123,14 @@ export default function BatchesPage() {
     });
 
     return sorted;
-  }, [batches, searchTerm, selectedSubject, selectedStatus, selectedSort]);
+  }, [
+    batches,
+    searchTerm,
+    selectedSubject,
+    selectedStatus,
+    selectedSort,
+    enrollmentCounts,
+  ]);
 
   function handleResetFilters() {
     setSearchTerm("");
@@ -130,7 +161,7 @@ export default function BatchesPage() {
   }
 
   return (
-    <div className="flex flex-col gap-6">
+    <PageContainer>
       <PageHeader
         title="Batches"
         description="Manage tuition batches, schedules and enrollment."
@@ -143,6 +174,13 @@ export default function BatchesPage() {
           </Button>
         }
       />
+
+      {emptyBatches.length > 0 && (
+        <ModuleAlertBanner
+          title={`${emptyBatches.length} empty batch${emptyBatches.length === 1 ? "" : "es"}`}
+          description={emptyBatches.map((batch) => batch.name).join(", ")}
+        />
+      )}
 
       {batches.length > 0 && <BatchStats stats={stats} />}
 
@@ -164,11 +202,11 @@ export default function BatchesPage() {
           {Array.from({ length: 6 }).map((_, index) => (
             <div
               key={index}
-              className="flex flex-col gap-4 rounded-2xl border border-slate-200 bg-white p-6 dark:border-slate-800 dark:bg-slate-950"
+              className="flex flex-col gap-4 rounded-2xl border border-slate-200 bg-white p-5 dark:border-slate-800 dark:bg-slate-950"
             >
               <div className="flex items-center justify-between">
                 <Skeleton className="h-5 w-32" />
-                <Skeleton className="h-8 w-8 rounded-lg" />
+                <Skeleton className="h-9 w-9 rounded-lg" />
               </div>
               <Skeleton className="h-4 w-40" />
               <Skeleton className="h-4 w-48" />
@@ -177,7 +215,7 @@ export default function BatchesPage() {
           ))}
         </div>
       ) : filteredBatches.length === 0 ? (
-        <div className="flex flex-col items-center justify-center gap-3 rounded-2xl border border-slate-200 bg-white px-6 py-16 text-center dark:border-slate-800 dark:bg-slate-950">
+        <div className="flex flex-col items-center justify-center gap-3 rounded-2xl border border-slate-200 bg-white px-6 py-10 text-center dark:border-slate-800 dark:bg-slate-950">
           <div className="flex h-12 w-12 items-center justify-center rounded-full bg-slate-100 dark:bg-slate-800">
             <Layers
               className="h-6 w-6 text-muted-foreground"
@@ -213,7 +251,7 @@ export default function BatchesPage() {
             <BatchCard
               key={batch.id}
               batch={batch}
-              enrolledCount={getStudentsByBatch(batch.id).length}
+              enrolledCount={enrollmentCounts.get(batch.id) ?? 0}
               onView={handleViewBatch}
               onEdit={handleEditBatch}
               onDelete={handleDeleteBatch}
@@ -226,7 +264,7 @@ export default function BatchesPage() {
         batch={batchPendingDelete}
         enrolledCount={
           batchPendingDelete
-            ? getStudentsByBatch(batchPendingDelete.id).length
+            ? (enrollmentCounts.get(batchPendingDelete.id) ?? 0)
             : 0
         }
         onOpenChange={(open) => {
@@ -234,6 +272,6 @@ export default function BatchesPage() {
         }}
         onConfirm={handleConfirmDelete}
       />
-    </div>
+    </PageContainer>
   );
 }

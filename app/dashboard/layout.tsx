@@ -1,8 +1,8 @@
-'use client'
+"use client";
 
-import * as React from 'react'
-import Link from 'next/link'
-import { usePathname } from 'next/navigation'
+import * as React from "react";
+import Link from "next/link";
+import { usePathname } from "next/navigation";
 import {
   LayoutDashboard,
   Layers,
@@ -12,85 +12,85 @@ import {
   GraduationCap,
   Settings,
   Menu,
-} from 'lucide-react'
+} from "lucide-react";
 import {
   Sheet,
   SheetContent,
   SheetTitle,
   SheetTrigger,
-} from '@/components/ui/sheet'
-import { Avatar, AvatarFallback } from '@/components/ui/avatar'
-import { Separator } from '@/components/ui/separator'
-import { Button } from '@/components/ui/button'
-import { Logo } from '@/components/branding/logo'
-import { cn } from '@/lib/utils'
+} from "@/components/ui/sheet";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Separator } from "@/components/ui/separator";
+import { Button } from "@/components/ui/button";
+import { Logo } from "@/components/branding/logo";
+import { cn } from "@/lib/utils";
+import { useTeacherSettings } from "@/lib/hooks/use-teacher-settings";
+import { getTeacherInitials } from "@/lib/mock/teacher";
 
 const navItems = [
-  { label: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
-  { label: 'Batches', href: '/dashboard/batches', icon: Layers },
-  { label: 'Students', href: '/dashboard/students', icon: Users },
-  { label: 'Attendance', href: '/dashboard/attendance', icon: CalendarCheck },
-  { label: 'Fees', href: '/dashboard/fees', icon: Wallet },
-  { label: 'Marks', href: '/dashboard/marks', icon: GraduationCap },
-]
+  { label: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
+  { label: "Batches", href: "/dashboard/batches", icon: Layers },
+  { label: "Students", href: "/dashboard/students", icon: Users },
+  { label: "Attendance", href: "/dashboard/attendance", icon: CalendarCheck },
+  { label: "Fees", href: "/dashboard/fees", icon: Wallet },
+  { label: "Marks", href: "/dashboard/marks", icon: GraduationCap },
+];
 
 const navItemBaseStyles =
-  'flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-all duration-200'
+  "flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-all duration-200";
 const navItemActiveStyles =
-  'bg-indigo-50 text-indigo-600 dark:bg-indigo-500/10 dark:text-indigo-400'
+  "bg-indigo-50 text-indigo-600 dark:bg-indigo-500/10 dark:text-indigo-400";
 const navItemInactiveStyles =
-  'text-muted-foreground hover:bg-slate-100 hover:text-foreground dark:hover:bg-slate-800'
+  "text-muted-foreground hover:bg-slate-100 hover:text-foreground dark:hover:bg-slate-800";
 
 function NavLinks({ onNavigate }: { onNavigate?: () => void }) {
-  const pathname = usePathname()
+  const pathname = usePathname();
 
   return (
     <nav aria-label="Main navigation" className="flex flex-col gap-1">
       {navItems.map((item) => {
         const isActive =
           pathname === item.href ||
-          (item.href !== '/dashboard' && pathname?.startsWith(item.href))
-        const Icon = item.icon
+          (item.href !== "/dashboard" && pathname?.startsWith(item.href));
+        const Icon = item.icon;
 
         return (
           <Link
             key={item.href}
             href={item.href}
             onClick={onNavigate}
-            aria-current={isActive ? 'page' : undefined}
+            aria-current={isActive ? "page" : undefined}
             className={cn(
               navItemBaseStyles,
-              isActive ? navItemActiveStyles : navItemInactiveStyles
+              isActive ? navItemActiveStyles : navItemInactiveStyles,
             )}
           >
             <Icon className="h-4 w-4 shrink-0" />
             {item.label}
           </Link>
-        )
+        );
       })}
     </nav>
-  )
+  );
 }
 
 function ProfileSection() {
-  const pathname = usePathname()
-  const isSettingsActive = pathname?.startsWith('/dashboard/settings')
+  const pathname = usePathname();
+  const isSettingsActive = pathname?.startsWith("/dashboard/settings");
 
-  // TODO: Replace with authenticated teacher's name once auth/user data is wired up.
-  const teacherName = 'Teacher Name'
-  // TODO: Replace with authenticated teacher's email once auth/user data is wired up.
-  const teacherEmail = 'teacher@example.com'
-  // TODO: Derive avatar initials from the authenticated teacher's name.
-  const avatarInitials = 'TN'
+  const { profile } = useTeacherSettings();
+  const teacherName = profile.fullName || "Your Name";
+  const teacherEmail = profile.email || "Add your email in Settings";
+  const avatarInitials = getTeacherInitials(profile.fullName);
 
   return (
     <div className="flex flex-col gap-3">
       <Link
         href="/dashboard/settings"
-        aria-current={isSettingsActive ? 'page' : undefined}
+        aria-current={isSettingsActive ? "page" : undefined}
         className={cn(
           navItemBaseStyles,
-          isSettingsActive ? navItemActiveStyles : navItemInactiveStyles
+          isSettingsActive ? navItemActiveStyles : navItemInactiveStyles,
         )}
       >
         <Settings className="h-4 w-4 shrink-0" />
@@ -113,7 +113,7 @@ function ProfileSection() {
         </div>
       </div>
     </div>
-  )
+  );
 }
 
 function SidebarContent({ onNavigate }: { onNavigate?: () => void }) {
@@ -134,11 +134,11 @@ function SidebarContent({ onNavigate }: { onNavigate?: () => void }) {
         <ProfileSection />
       </div>
     </div>
-  )
+  );
 }
 
 function MobileHeader() {
-  const [open, setOpen] = React.useState(false)
+  const [open, setOpen] = React.useState(false);
 
   return (
     <header className="flex h-16 items-center gap-3 border-b border-slate-200 bg-white px-4 dark:border-slate-800 dark:bg-slate-950 lg:hidden">
@@ -159,13 +159,13 @@ function MobileHeader() {
         <Logo size={28} />
       </Link>
     </header>
-  )
+  );
 }
 
 export default function DashboardLayout({
   children,
 }: {
-  children: React.ReactNode
+  children: React.ReactNode;
 }) {
   return (
     <div className="flex min-h-screen bg-slate-50 dark:bg-slate-950">
@@ -176,9 +176,9 @@ export default function DashboardLayout({
       <div className="flex min-h-screen w-full flex-col lg:pl-[280px]">
         <MobileHeader />
         <main className="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8">
-          {children}
+          <div className="mx-auto w-full max-w-screen-2xl">{children}</div>
         </main>
       </div>
     </div>
-  )
+  );
 }

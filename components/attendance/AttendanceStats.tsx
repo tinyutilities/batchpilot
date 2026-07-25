@@ -1,10 +1,11 @@
 import { CheckCircle2, Clock, ShieldCheck, XCircle } from "lucide-react";
 import { StatCard } from "@/components/dashboard/stat-card";
+import { StatCardGrid } from "@/components/dashboard/stat-card-grid";
 import type { AttendanceStatsProps } from "@/types/attendance";
 
 export default function AttendanceStats({ stats }: AttendanceStatsProps) {
   return (
-    <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+    <StatCardGrid>
       <StatCard
         title="Present"
         value={stats.presentCount}
@@ -29,10 +30,10 @@ export default function AttendanceStats({ stats }: AttendanceStatsProps) {
       <StatCard
         title="Avg. Attendance"
         value={`${stats.averageAttendancePercentage}%`}
-        description="Present + late, excluding excused"
+        description="Present + late only"
         icon={<ShieldCheck className="h-5 w-5" />}
         color="indigo"
       />
-    </div>
+    </StatCardGrid>
   );
 }

@@ -4,10 +4,12 @@ import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { CalendarCheck, ClipboardList, Plus } from "lucide-react";
+import { PageContainer } from "@/components/layout/page-container";
 import { PageHeader } from "@/components/layout/page-header";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { DashboardCard } from "@/components/dashboard/dashboard-card";
+import { ModuleAlertBanner } from "@/components/dashboard/ModuleAlertBanner";
 import AttendanceStats from "@/components/attendance/AttendanceStats";
 import AttendanceFilters from "@/components/attendance/AttendanceFilters";
 import AttendanceTable from "@/components/attendance/AttendanceTable";
@@ -56,6 +58,13 @@ export default function AttendancePage() {
   const today = todayKey();
   const todaySummary = useMemo(() => getTodayAttendanceSummary(), []);
   const scheduledToday = useMemo(() => getScheduledBatchesForDate(today), [today]);
+  const unmarkedToday = useMemo(
+    () =>
+      scheduledToday.filter(
+        (batch) => !isAttendanceMarkedForBatch(batch.id, today)
+      ),
+    [scheduledToday, today]
+  );
 
   const allSessions = useMemo(() => getAllAttendanceSessions(), []);
 
@@ -94,7 +103,7 @@ export default function AttendancePage() {
   }
 
   return (
-    <div className="flex flex-col gap-6">
+    <PageContainer>
       <PageHeader
         title="Attendance"
         description="Mark and review student attendance across all batches."
@@ -107,6 +116,13 @@ export default function AttendancePage() {
           </Button>
         }
       />
+
+      {unmarkedToday.length > 0 && (
+        <ModuleAlertBanner
+          title={`${unmarkedToday.length} batch${unmarkedToday.length === 1 ? "" : "es"} without attendance marked today`}
+          description={unmarkedToday.map((batch) => batch.name).join(", ")}
+        />
+      )}
 
       {allSessions.length > 0 && <AttendanceStats stats={stats} />}
 
@@ -191,7 +207,7 @@ export default function AttendancePage() {
       />
 
       {filteredSessions.length === 0 && !isLoading && allSessions.length === 0 ? (
-        <div className="flex flex-col items-center justify-center gap-3 rounded-xl border border-slate-200 bg-white px-6 py-16 text-center dark:border-slate-800 dark:bg-slate-950">
+        <div className="flex flex-col items-center justify-center gap-3 rounded-xl border border-slate-200 bg-white px-6 py-10 text-center dark:border-slate-800 dark:bg-slate-950">
           <div className="flex h-12 w-12 items-center justify-center rounded-full bg-slate-100 dark:bg-slate-800">
             <ClipboardList
               className="h-6 w-6 text-muted-foreground"
@@ -216,6 +232,6 @@ export default function AttendancePage() {
           onViewBatch={handleViewBatch}
         />
       )}
-    </div>
+    </PageContainer>
   );
 }

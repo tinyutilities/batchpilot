@@ -6,8 +6,8 @@ import { Separator } from "@/components/ui/separator";
 
 export default function WelcomeOnboarding() {
   return (
-    <Card className="rounded-2xl border-slate-200 bg-white shadow-sm dark:border-slate-800 dark:bg-slate-900">
-      <CardContent className="flex flex-col items-center gap-8 p-8 text-center sm:p-12">
+    <Card className="[--card-spacing:--spacing(6)] rounded-2xl border-slate-200 bg-white shadow-sm sm:[--card-spacing:--spacing(8)] dark:border-slate-800 dark:bg-slate-900">
+      <CardContent className="flex flex-col items-center gap-6 text-center">
         <div className="flex flex-col gap-2">
           <h2 className="text-2xl font-semibold text-foreground">
             Welcome to BatchPilot 👋
@@ -18,7 +18,7 @@ export default function WelcomeOnboarding() {
         </div>
 
         <div className="flex w-full max-w-md flex-col">
-          <div className="flex flex-col items-center gap-3 py-6 text-center">
+          <div className="flex flex-col items-center gap-3 py-5 text-center">
             <span className="text-xs font-semibold uppercase tracking-wide text-indigo-600 dark:text-indigo-400">
               Step 1
             </span>
@@ -35,7 +35,7 @@ export default function WelcomeOnboarding() {
 
           <Separator />
 
-          <div className="flex flex-col items-center gap-3 py-6 text-center">
+          <div className="flex flex-col items-center gap-3 py-5 text-center">
             <span className="text-xs font-semibold uppercase tracking-wide text-indigo-600 dark:text-indigo-400">
               Step 2
             </span>
@@ -52,7 +52,7 @@ export default function WelcomeOnboarding() {
 
           <Separator />
 
-          <div className="flex flex-col items-center gap-2 pt-6 text-center">
+          <div className="flex flex-col items-center gap-2 pt-5 text-center">
             <span className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
               Step 3
             </span>

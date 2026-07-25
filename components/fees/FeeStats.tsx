@@ -1,10 +1,11 @@
 import { AlertTriangle, CheckCircle2, Clock3, Wallet } from "lucide-react";
 import { StatCard } from "@/components/dashboard/stat-card";
+import { StatCardGrid } from "@/components/dashboard/stat-card-grid";
 import type { FeeStatsProps } from "@/types/fees";
 
 export default function FeeStats({ stats }: FeeStatsProps) {
   return (
-    <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+    <StatCardGrid>
       <StatCard
         title="Total Collected"
         value={`₹${stats.totalCollected.toLocaleString("en-IN")}`}
@@ -33,6 +34,6 @@ export default function FeeStats({ stats }: FeeStatsProps) {
         icon={<CheckCircle2 className="h-5 w-5" />}
         color="indigo"
       />
-    </div>
+    </StatCardGrid>
   );
 }

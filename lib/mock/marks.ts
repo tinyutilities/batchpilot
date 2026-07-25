@@ -16,7 +16,11 @@ import type {
   TestResultSummary,
   TopperEntry,
 } from "@/types/marks";
-import { getBatchById, getStudentsByBatch, mockBatches } from "@/lib/mock/batch";
+import {
+  getBatchById,
+  getStudentsByBatch,
+  mockBatches,
+} from "@/lib/mock/batch";
 import { mockStudents } from "@/lib/mock/student";
 import { seededRandom, toDateKey, toMonthKey } from "@/lib/utils";
 import { USE_DEMO_DATA } from "@/lib/config";
@@ -25,7 +29,7 @@ const PASS_THRESHOLD = 35;
 
 export function calculatePercentage(
   marksObtained: number,
-  maxMarks: number
+  maxMarks: number,
 ): number {
   if (maxMarks <= 0) return 0;
   return Math.round((marksObtained / maxMarks) * 1000) / 10;
@@ -101,7 +105,7 @@ function generateSeedData(): { tests: Test[]; marks: MarkRecord[] } {
 
         const percentage = 35 + Math.round(seededRandom(seed + 1) * 60);
         const marksObtained = Math.round(
-          (percentage / 100) * template.maxMarks
+          (percentage / 100) * template.maxMarks,
         );
 
         marks.push({
@@ -151,16 +155,16 @@ export function getMarksByStudent(studentId: string): MarkRecord[] {
 
 export function getMarkByTestAndStudent(
   testId: string,
-  studentId: string
+  studentId: string,
 ): MarkRecord | undefined {
   return mockMarks.find(
-    (mark) => mark.testId === testId && mark.studentId === studentId
+    (mark) => mark.testId === testId && mark.studentId === studentId,
   );
 }
 
 export function createTest(data: TestFormData): Test {
   const test: Test = {
-    id: `test-${data.batchId}-${Date.now()}`,
+    id: `test-${data.batchId}-${crypto.randomUUID()}`,
     name: data.name,
     subject: data.subject,
     batchId: data.batchId,
@@ -204,7 +208,7 @@ export function deleteTest(id: string): boolean {
 
 export function saveMarksForTest(
   testId: string,
-  entries: MarkEntryInput[]
+  entries: MarkEntryInput[],
 ): MarkRecord[] {
   const markedAt = new Date().toISOString();
   const saved: MarkRecord[] = [];
@@ -257,7 +261,7 @@ export function getTestResultSummary(testId: string): TestResultSummary | null {
       percentages.length > 0
         ? Math.round(
             percentages.reduce((sum, value) => sum + value, 0) /
-              percentages.length
+              percentages.length,
           )
         : 0,
     highestPercentage:
@@ -319,7 +323,7 @@ export function computeMarksStats(tests: Test[]): MarksStatsData {
       percentages.length > 0
         ? Math.round(
             percentages.reduce((sum, value) => sum + value, 0) /
-              percentages.length
+              percentages.length,
           )
         : 0,
     highestPercentage:
@@ -334,9 +338,12 @@ export function computeMarksStats(tests: Test[]): MarksStatsData {
 }
 
 export function getSubjectSummaries(
-  tests: Test[] = getAllTests()
+  tests: Test[] = getAllTests(),
 ): SubjectSummary[] {
-  const subjectMap = new Map<string, { testsCount: number; percentages: number[] }>();
+  const subjectMap = new Map<
+    string,
+    { testsCount: number; percentages: number[] }
+  >();
 
   tests.forEach((test) => {
     const percentages = getMarksByTest(test.id)
@@ -359,7 +366,7 @@ export function getSubjectSummaries(
       data.percentages.length > 0
         ? Math.round(
             data.percentages.reduce((sum, value) => sum + value, 0) /
-              data.percentages.length
+              data.percentages.length,
           )
         : 0,
   }));
@@ -367,11 +374,11 @@ export function getSubjectSummaries(
 
 function getExtremeScorer(
   tests: Test[],
-  isBetter: (candidate: number, current: number) => boolean
+  isBetter: (candidate: number, current: number) => boolean,
 ): TopperEntry | null {
   const testIds = new Set(tests.map((test) => test.id));
   const relevantMarks = mockMarks.filter(
-    (mark) => testIds.has(mark.testId) && mark.status === "present"
+    (mark) => testIds.has(mark.testId) && mark.status === "present",
   );
 
   let best: { studentId: string; percentage: number } | null = null;
@@ -408,10 +415,14 @@ export function getMonthlyTestSummaries(monthsBack = 6): MonthlyTestSummary[] {
   const results: MonthlyTestSummary[] = [];
 
   for (let offset = monthsBack - 1; offset >= 0; offset--) {
-    const monthDate = new Date(today.getFullYear(), today.getMonth() - offset, 1);
+    const monthDate = new Date(
+      today.getFullYear(),
+      today.getMonth() - offset,
+      1,
+    );
     const monthKey = toMonthKey(monthDate);
     const monthTests = mockTests.filter(
-      (test) => toMonthKey(new Date(test.testDate)) === monthKey
+      (test) => toMonthKey(new Date(test.testDate)) === monthKey,
     );
     const stats = computeMarksStats(monthTests);
 
@@ -441,7 +452,7 @@ export function getStudentMarkSummary(studentId: string): StudentMarkSummary {
     records.length > 0
       ? Math.round(
           records.reduce((sum, record) => sum + record.percentage, 0) /
-            records.length
+            records.length,
         )
       : 0;
 
@@ -452,12 +463,12 @@ export function getStudentMarkSummary(studentId: string): StudentMarkSummary {
     subjectMap.set(record.test.subject, list);
   });
   const subjectAverages: SubjectSummary[] = Array.from(
-    subjectMap.entries()
+    subjectMap.entries(),
   ).map(([subject, percentages]) => ({
     subject,
     testsCount: percentages.length,
     averagePercentage: Math.round(
-      percentages.reduce((sum, value) => sum + value, 0) / percentages.length
+      percentages.reduce((sum, value) => sum + value, 0) / percentages.length,
     ),
   }));
 

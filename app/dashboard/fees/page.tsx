@@ -5,9 +5,11 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { ReceiptText } from "lucide-react";
 import { toast } from "sonner";
+import { PageContainer } from "@/components/layout/page-container";
 import { PageHeader } from "@/components/layout/page-header";
 import { Button } from "@/components/ui/button";
 import { DashboardCard } from "@/components/dashboard/dashboard-card";
+import { ModuleAlertBanner } from "@/components/dashboard/ModuleAlertBanner";
 import { cn } from "@/lib/utils";
 import FeeStats from "@/components/fees/FeeStats";
 import FeeFilters from "@/components/fees/FeeFilters";
@@ -17,6 +19,7 @@ import {
   computeFeeStats,
   getAllFees,
   getMonthlyCollectionStats,
+  getOverdueFees,
   monthLabel,
   recordPayment,
 } from "@/lib/mock/fees";
@@ -64,6 +67,12 @@ export default function FeesPage() {
 
   const monthlyStats = useMemo(
     () => getMonthlyCollectionStats(3),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [refreshKey]
+  );
+
+  const overdueFees = useMemo(
+    () => getOverdueFees(),
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [refreshKey]
   );
@@ -169,11 +178,21 @@ export default function FeesPage() {
     : null;
 
   return (
-    <div className="flex flex-col gap-6">
+    <PageContainer>
       <PageHeader
         title="Fees"
         description="Track fee payments, pending dues, and payment history."
       />
+
+      {overdueFees.length > 0 && (
+        <ModuleAlertBanner
+          severity="critical"
+          title={`${overdueFees.length} overdue fee${overdueFees.length === 1 ? "" : "s"}`}
+          description={`₹${overdueFees
+            .reduce((sum, fee) => sum + (fee.amount - fee.amountPaid), 0)
+            .toLocaleString("en-IN")} pending past the due date`}
+        />
+      )}
 
       {allRows.length > 0 && <FeeStats stats={stats} />}
 
@@ -225,7 +244,7 @@ export default function FeesPage() {
       />
 
       {!isLoading && allRows.length === 0 ? (
-        <div className="flex flex-col items-center justify-center gap-3 rounded-xl border border-slate-200 bg-white px-6 py-16 text-center dark:border-slate-800 dark:bg-slate-950">
+        <div className="flex flex-col items-center justify-center gap-3 rounded-xl border border-slate-200 bg-white px-6 py-10 text-center dark:border-slate-800 dark:bg-slate-950">
           <div className="flex h-12 w-12 items-center justify-center rounded-full bg-slate-100 dark:bg-slate-800">
             <ReceiptText
               className="h-6 w-6 text-muted-foreground"
@@ -265,6 +284,6 @@ export default function FeesPage() {
         }}
         onSubmit={handleSubmitPayment}
       />
-    </div>
+    </PageContainer>
   );
 }

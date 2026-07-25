@@ -5,9 +5,11 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { Award, ClipboardList, Plus, TrendingDown } from "lucide-react";
 import { toast } from "sonner";
+import { PageContainer } from "@/components/layout/page-container";
 import { PageHeader } from "@/components/layout/page-header";
 import { Button } from "@/components/ui/button";
 import { DashboardCard } from "@/components/dashboard/dashboard-card";
+import { ModuleAlertBanner } from "@/components/dashboard/ModuleAlertBanner";
 import MarksStats from "@/components/marks/MarksStats";
 import MarksFilters from "@/components/marks/MarksFilters";
 import MarksTable from "@/components/marks/MarksTable";
@@ -56,6 +58,10 @@ export default function MarksPage() {
   const subjectSummaries = useMemo(
     () => getSubjectSummaries(allTests),
     [allTests]
+  );
+  const testsWithoutMarks = useMemo(
+    () => allSummaries.filter((summary) => summary.studentsAppeared === 0),
+    [allSummaries]
   );
 
   const subjects = useMemo(
@@ -109,7 +115,7 @@ export default function MarksPage() {
   }
 
   return (
-    <div className="flex flex-col gap-6">
+    <PageContainer>
       <PageHeader
         title="Marks"
         description="Record, edit and review student test performance."
@@ -123,16 +129,25 @@ export default function MarksPage() {
         }
       />
 
+      {testsWithoutMarks.length > 0 && (
+        <ModuleAlertBanner
+          title={`${testsWithoutMarks.length} test${testsWithoutMarks.length === 1 ? "" : "s"} without marks entered`}
+          description={testsWithoutMarks
+            .map((summary) => summary.test.name)
+            .join(", ")}
+        />
+      )}
+
       {allSummaries.length > 0 && <MarksStats stats={stats} />}
 
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
         <DashboardCard title="Highest Scorer" description="Best result across all tests">
           {topScorer ? (
             <div className="flex items-center gap-3">
-              <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-emerald-50 text-emerald-600 dark:bg-emerald-500/10 dark:text-emerald-400">
+              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-emerald-50 text-emerald-600 dark:bg-emerald-500/10 dark:text-emerald-400">
                 <Award className="h-5 w-5" aria-hidden="true" />
               </div>
-              <div className="flex flex-col">
+              <div className="flex flex-col gap-0.5">
                 <span className="font-medium text-foreground">
                   {topScorer.studentName}
                 </span>
@@ -149,10 +164,10 @@ export default function MarksPage() {
         <DashboardCard title="Lowest Scorer" description="Needs the most support">
           {lowestScorer ? (
             <div className="flex items-center gap-3">
-              <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-rose-50 text-rose-600 dark:bg-rose-500/10 dark:text-rose-400">
+              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-rose-50 text-rose-600 dark:bg-rose-500/10 dark:text-rose-400">
                 <TrendingDown className="h-5 w-5" aria-hidden="true" />
               </div>
-              <div className="flex flex-col">
+              <div className="flex flex-col gap-0.5">
                 <span className="font-medium text-foreground">
                   {lowestScorer.studentName}
                 </span>
@@ -194,7 +209,7 @@ export default function MarksPage() {
       />
 
       {!isLoading && allSummaries.length === 0 ? (
-        <div className="flex flex-col items-center justify-center gap-3 rounded-xl border border-slate-200 bg-white px-6 py-16 text-center dark:border-slate-800 dark:bg-slate-950">
+        <div className="flex flex-col items-center justify-center gap-3 rounded-xl border border-slate-200 bg-white px-6 py-10 text-center dark:border-slate-800 dark:bg-slate-950">
           <div className="flex h-12 w-12 items-center justify-center rounded-full bg-slate-100 dark:bg-slate-800">
             <ClipboardList
               className="h-6 w-6 text-muted-foreground"
@@ -228,6 +243,6 @@ export default function MarksPage() {
         }}
         onConfirm={handleConfirmDelete}
       />
-    </div>
+    </PageContainer>
   );
 }

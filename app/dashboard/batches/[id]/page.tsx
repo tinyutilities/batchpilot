@@ -21,6 +21,7 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { DashboardCard } from "@/components/dashboard/dashboard-card";
+import { PageContainer } from "@/components/layout/page-container";
 import { PageHeader } from "@/components/layout/page-header";
 import { StatCard } from "@/components/dashboard/stat-card";
 import {
@@ -42,8 +43,7 @@ import BatchDeleteDialog from "@/components/batches/BatchDeleteDialog";
 import {
   assignStudentToBatch,
   deleteBatch,
-  formatBatchDays,
-  formatBatchTime,
+  formatBatchSchedule,
   getBatchById,
   removeStudentFromBatch,
 } from "@/lib/mock/batch";
@@ -76,12 +76,12 @@ export default function BatchDetailsPage() {
 
   if (!batch) {
     return (
-      <div className="flex flex-col gap-8">
+      <PageContainer className="gap-6">
         <PageHeader
           title="Batch not found"
           description="This batch may have been removed."
         />
-        <div className="flex flex-col items-center justify-center gap-3 rounded-2xl border border-slate-200 bg-white px-6 py-16 text-center dark:border-slate-800 dark:bg-slate-950">
+        <div className="flex flex-col items-center justify-center gap-3 rounded-2xl border border-slate-200 bg-white px-6 py-10 text-center dark:border-slate-800 dark:bg-slate-950">
           <div className="flex h-12 w-12 items-center justify-center rounded-full bg-slate-100 dark:bg-slate-800">
             <LayersIcon
               className="h-6 w-6 text-muted-foreground"
@@ -98,7 +98,7 @@ export default function BatchDetailsPage() {
             <Link href="/dashboard/batches">Back to Batches</Link>
           </Button>
         </div>
-      </div>
+      </PageContainer>
     );
   }
 
@@ -144,7 +144,7 @@ export default function BatchDetailsPage() {
   }
 
   return (
-    <div className="flex flex-col gap-8">
+    <PageContainer className="gap-6">
       <PageHeader
         title={batch.name}
         description="Batch details and student roster."
@@ -185,14 +185,16 @@ export default function BatchDetailsPage() {
               </div>
 
               <dl className="flex flex-col gap-3 text-sm">
-                <div className="flex flex-col gap-1">
-                  <dt className="text-xs font-medium text-muted-foreground">
-                    Subject
-                  </dt>
-                  <dd className="font-medium text-foreground">
-                    {batch.subject}
-                  </dd>
-                </div>
+                {batch.subject && (
+                  <div className="flex flex-col gap-1">
+                    <dt className="text-xs font-medium text-muted-foreground">
+                      Subject
+                    </dt>
+                    <dd className="font-medium text-foreground">
+                      {batch.subject}
+                    </dd>
+                  </div>
+                )}
                 <div className="flex flex-col gap-1">
                   <dt className="text-xs font-medium text-muted-foreground">
                     Teacher
@@ -210,9 +212,7 @@ export default function BatchDetailsPage() {
                       className="h-4 w-4 shrink-0 text-slate-400"
                       aria-hidden="true"
                     />
-                    {formatBatchDays(batch.days)},{" "}
-                    {formatBatchTime(batch.startTime)} -{" "}
-                    {formatBatchTime(batch.endTime)}
+                    {formatBatchSchedule(batch.schedule)}
                   </dd>
                 </div>
                 <div className="flex flex-col gap-1">
@@ -230,20 +230,27 @@ export default function BatchDetailsPage() {
           <div className="grid grid-cols-2 gap-4">
             <StatCard
               title="Enrolled"
-              value={`${roster.length} / ${batch.capacity}`}
+              value={
+                batch.capacity > 0
+                  ? `${roster.length} / ${batch.capacity}`
+                  : `${roster.length}`
+              }
+              description={batch.capacity > 0 ? undefined : "Unlimited capacity"}
               icon={<Users className="h-5 w-5" />}
               color="blue"
             />
             <StatCard
               title="Capacity Usage"
-              value={`${capacityPercentage}%`}
+              value={batch.capacity > 0 ? `${capacityPercentage}%` : "—"}
               icon={<Gauge className="h-5 w-5" />}
               color={
-                capacityPercentage >= 100
-                  ? "rose"
-                  : capacityPercentage >= 80
-                    ? "amber"
-                    : "green"
+                batch.capacity === 0
+                  ? "indigo"
+                  : capacityPercentage >= 100
+                    ? "rose"
+                    : capacityPercentage >= 80
+                      ? "amber"
+                      : "green"
               }
             />
           </div>
@@ -343,6 +350,7 @@ export default function BatchDetailsPage() {
                   </p>
                 </div>
               ) : (
+                <div className="-mx-6">
                 <Table>
                   <TableHeader>
                     <TableRow>
@@ -361,7 +369,7 @@ export default function BatchDetailsPage() {
                             href={`/dashboard/students/${student.id}`}
                             className="flex items-center gap-3 hover:underline"
                           >
-                            <Avatar className="h-8 w-8">
+                            <Avatar className="h-9 w-9">
                               <AvatarFallback>
                                 {getInitials(
                                   student.firstName,
@@ -409,6 +417,7 @@ export default function BatchDetailsPage() {
                     ))}
                   </TableBody>
                 </Table>
+                </div>
               )}
             </div>
           </DashboardCard>
@@ -421,6 +430,6 @@ export default function BatchDetailsPage() {
         onOpenChange={setIsDeleteOpen}
         onConfirm={handleConfirmDelete}
       />
-    </div>
+    </PageContainer>
   );
 }

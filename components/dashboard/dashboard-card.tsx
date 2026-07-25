@@ -26,7 +26,7 @@ export function DashboardCard({
   return (
     <Card
       className={cn(
-        'rounded-2xl border-gray-200 bg-white shadow-sm transition-shadow duration-200 hover:shadow-md dark:border-gray-800 dark:bg-gray-900',
+        '[--card-spacing:--spacing(5)] rounded-2xl border-gray-200 bg-white shadow-sm transition-shadow duration-200 hover:shadow-md dark:border-gray-800 dark:bg-gray-900',
         className
       )}
     >

@@ -2,6 +2,7 @@
 
 import { format } from "date-fns";
 import { Eye, MoreHorizontal, Pencil, Trash2, Users } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -46,7 +47,7 @@ function TableSkeleton() {
           <Skeleton className="h-4 w-32" />
           <Skeleton className="h-4 w-24" />
           <Skeleton className="h-4 w-16" />
-          <Skeleton className="ml-auto h-8 w-8 rounded-lg" />
+          <Skeleton className="ml-auto h-9 w-9 rounded-lg" />
         </div>
       ))}
     </div>
@@ -55,7 +56,7 @@ function TableSkeleton() {
 
 function EmptyState() {
   return (
-    <div className="flex flex-col items-center justify-center gap-3 px-6 py-16 text-center">
+    <div className="flex flex-col items-center justify-center gap-3 px-6 py-10 text-center">
       <div className="flex h-12 w-12 items-center justify-center rounded-full bg-slate-100 dark:bg-slate-800">
         <Users className="h-6 w-6 text-muted-foreground" aria-hidden="true" />
       </div>
@@ -111,8 +112,12 @@ export default function MarksTable({
           {summaries.map((summary) => (
             <TableRow
               key={summary.test.id}
-              className="cursor-pointer"
+              tabIndex={0}
+              className="cursor-pointer focus:bg-muted/50 focus:outline-none"
               onClick={() => onViewResults(summary)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") onViewResults(summary);
+              }}
             >
               <TableCell className="font-medium text-foreground">
                 {summary.test.name}
@@ -145,14 +150,16 @@ export default function MarksTable({
               <TableCell className="text-right">
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
-                    <button
+                    <Button
                       type="button"
+                      variant="ghost"
+                      size="icon-sm"
                       aria-label={`Actions for ${summary.test.name}`}
                       onClick={(e) => e.stopPropagation()}
-                      className="flex h-8 w-8 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:bg-slate-100 hover:text-foreground dark:hover:bg-slate-800"
+                      className="text-muted-foreground"
                     >
                       <MoreHorizontal className="h-4 w-4" aria-hidden="true" />
-                    </button>
+                    </Button>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent
                     align="end"

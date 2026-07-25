@@ -25,6 +25,10 @@ async function handleCopyMeetLink(link: string) {
   }
 }
 
+function formatMeetLink(link: string) {
+  return link.replace(/^https?:\/\//, "").replace(/\/$/, "");
+}
+
 interface TodayScheduleProps {
   schedule: ScheduleEntry[];
   today: string;
@@ -101,38 +105,35 @@ export default function TodaySchedule({ schedule, today }: TodayScheduleProps) {
                 <div className="flex shrink-0 flex-wrap items-center justify-end gap-2">
                   {entry.googleMeetLink && (
                     <>
-                      <Button
-                        asChild
-                        variant="outline"
-                        size="sm"
-                        className="h-9 rounded-lg"
-                      >
+                      <div className="flex items-center gap-1.5 rounded-lg border border-slate-200 bg-slate-50 py-1.5 pr-1.5 pl-2.5 dark:border-slate-800 dark:bg-slate-900">
+                        <span className="max-w-[160px] truncate font-mono text-xs text-foreground sm:max-w-[200px]">
+                          {formatMeetLink(entry.googleMeetLink)}
+                        </span>
+                        <button
+                          type="button"
+                          aria-label="Copy Meet link"
+                          onClick={() =>
+                            handleCopyMeetLink(entry.googleMeetLink)
+                          }
+                          className="flex h-6 w-6 shrink-0 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-slate-200 hover:text-foreground dark:hover:bg-slate-800"
+                        >
+                          <Copy className="h-3.5 w-3.5" aria-hidden="true" />
+                          <span className="sr-only">Copy link</span>
+                        </button>
+                      </div>
+                      <Button asChild variant="outline" size="sm">
                         <a
                           href={entry.googleMeetLink}
                           target="_blank"
                           rel="noopener noreferrer"
                         >
                           <Video className="mr-1.5 h-3.5 w-3.5" />
-                          Meet
+                          Join Meeting
                         </a>
-                      </Button>
-                      <Button
-                        type="button"
-                        variant="outline"
-                        size="sm"
-                        className="h-9 rounded-lg"
-                        onClick={() => handleCopyMeetLink(entry.googleMeetLink)}
-                      >
-                        <Copy className="mr-1.5 h-3.5 w-3.5" />
-                        Copy Link
                       </Button>
                     </>
                   )}
-                  <Button
-                    asChild
-                    size="sm"
-                    className="h-9 rounded-lg"
-                  >
+                  <Button asChild size="sm">
                     <Link
                       href={`/dashboard/attendance/mark?batchId=${entry.batchId}&date=${today}`}
                     >

@@ -4,15 +4,21 @@ import {
   computeBatchStats,
   formatBatchTime,
   getBatchById,
+  getScheduleEntryForDay,
   getStudentsByBatch,
   mockBatches,
 } from "@/lib/mock/batch";
-import { computeStudentStats, getStudentById, mockStudents } from "@/lib/mock/student";
+import {
+  computeStudentStats,
+  getStudentById,
+  mockStudents,
+} from "@/lib/mock/student";
 import {
   computeAttendanceStats,
   getAllAttendanceSessions,
   getMonthlyAttendanceStats,
   getScheduledBatchesForDate,
+  getWeekDayForDateKey,
   isAttendanceMarkedForBatch,
   toDateKey,
 } from "@/lib/mock/attendance";
@@ -20,7 +26,6 @@ import {
   computeFeeStats,
   getAllFees,
   getMonthlyCollectionStats,
-  getOverdueFees,
   mockPayments,
   monthLabel,
 } from "@/lib/mock/fees";
@@ -28,13 +33,11 @@ import {
   computeMarksStats,
   getAllTests,
   getMarkEntrySessions,
-  getMarksByTest,
   getMonthlyTestSummaries,
   getTestById,
 } from "@/lib/mock/marks";
 import type {
   ActivityItem,
-  AlertItem,
   DashboardStatsData,
   DashboardTrends,
   ScheduleEntry,
@@ -43,6 +46,14 @@ import type {
 function currentMonthKey(): string {
   const now = new Date();
   return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
+}
+
+export function getTimeOfDayGreeting(
+  hour: number = new Date().getHours(),
+): string {
+  if (hour < 12) return "Good Morning";
+  if (hour < 17) return "Good Afternoon";
+  return "Good Evening";
 }
 
 export function getDashboardStats(): DashboardStatsData {
@@ -60,7 +71,7 @@ export function getDashboardStats(): DashboardStatsData {
 
   const monthCollection = getMonthlyCollectionStats(1)[0];
   const pendingFeesThisMonth = computeFeeStats(
-    getAllFees().filter((fee) => fee.month === thisMonth)
+    getAllFees().filter((fee) => fee.month === thisMonth),
   );
 
   const testsThisMonth = getMonthlyTestSummaries(1)[0];
@@ -74,7 +85,7 @@ export function getDashboardStats(): DashboardStatsData {
     attendanceTodayMarked: todayRecords.length,
     attendanceTodayTotal: todaysBatches.reduce(
       (sum, batch) => sum + getStudentsByBatch(batch.id).length,
-      0
+      0,
     ),
     monthlyCollection: monthCollection?.collected ?? 0,
     pendingFees: pendingFeesThisMonth.pendingAmount,
@@ -85,16 +96,22 @@ export function getDashboardStats(): DashboardStatsData {
 
 export function getTodaySchedule(): ScheduleEntry[] {
   const today = toDateKey(new Date());
+  const weekDay = getWeekDayForDateKey(today);
 
   return getScheduledBatchesForDate(today)
-    .slice()
-    .sort((a, b) => (a.startTime < b.startTime ? -1 : 1))
     .map((batch) => ({
+      batch,
+      // getScheduledBatchesForDate already filtered to batches meeting
+      // today, so a matching entry is guaranteed here.
+      entry: getScheduleEntryForDay(batch, weekDay)!,
+    }))
+    .sort((a, b) => (a.entry.startTime < b.entry.startTime ? -1 : 1))
+    .map(({ batch, entry }) => ({
       batchId: batch.id,
       batchName: batch.name,
       subject: batch.subject,
       teacherName: batch.teacherName,
-      timeLabel: `${formatBatchTime(batch.startTime)} - ${formatBatchTime(batch.endTime)}`,
+      timeLabel: `${formatBatchTime(entry.startTime)} - ${formatBatchTime(entry.endTime)}`,
       googleMeetLink: batch.googleMeetLink,
       isMarked: isAttendanceMarkedForBatch(batch.id, today),
     }));
@@ -114,7 +131,8 @@ export function getRecentActivity(limit = 8): ActivityItem[] {
   });
 
   getAllAttendanceSessions().forEach((session) => {
-    const markedAt = session.records[0]?.markedAt ?? `${session.date}T00:00:00.000Z`;
+    const markedAt =
+      session.records[0]?.markedAt ?? `${session.date}T00:00:00.000Z`;
     items.push({
       id: `attendance-${session.batchId}-${session.date}`,
       type: "attendance_marked",
@@ -158,67 +176,6 @@ export function getRecentActivity(limit = 8): ActivityItem[] {
   });
 
   return items.sort((a, b) => (a.at < b.at ? 1 : -1)).slice(0, limit);
-}
-
-export function getDashboardAlerts(): AlertItem[] {
-  const alerts: AlertItem[] = [];
-  const today = toDateKey(new Date());
-
-  const overdueFees = getOverdueFees();
-  if (overdueFees.length > 0) {
-    const totalOverdue = overdueFees.reduce(
-      (sum, fee) => sum + (fee.amount - fee.amountPaid),
-      0
-    );
-    alerts.push({
-      id: "overdue-fees",
-      severity: "critical",
-      title: `${overdueFees.length} overdue fee${overdueFees.length === 1 ? "" : "s"}`,
-      description: `₹${totalOverdue.toLocaleString("en-IN")} pending past the due date`,
-      href: "/dashboard/fees",
-    });
-  }
-
-  const unmarkedBatches = getScheduledBatchesForDate(today).filter(
-    (batch) => !isAttendanceMarkedForBatch(batch.id, today)
-  );
-  if (unmarkedBatches.length > 0) {
-    alerts.push({
-      id: "attendance-not-marked",
-      severity: "warning",
-      title: `${unmarkedBatches.length} batch${unmarkedBatches.length === 1 ? "" : "es"} without attendance marked today`,
-      description: unmarkedBatches.map((batch) => batch.name).join(", "),
-      href: "/dashboard/attendance",
-    });
-  }
-
-  const testsWithoutMarks = getAllTests().filter(
-    (test) => getMarksByTest(test.id).length === 0
-  );
-  if (testsWithoutMarks.length > 0) {
-    alerts.push({
-      id: "tests-without-marks",
-      severity: "warning",
-      title: `${testsWithoutMarks.length} test${testsWithoutMarks.length === 1 ? "" : "s"} without marks entered`,
-      description: testsWithoutMarks.map((test) => test.name).join(", "),
-      href: "/dashboard/marks",
-    });
-  }
-
-  const emptyBatches = mockBatches.filter(
-    (batch) => getStudentsByBatch(batch.id).length === 0
-  );
-  if (emptyBatches.length > 0) {
-    alerts.push({
-      id: "empty-batches",
-      severity: "warning",
-      title: `${emptyBatches.length} empty batch${emptyBatches.length === 1 ? "" : "es"}`,
-      description: emptyBatches.map((batch) => batch.name).join(", "),
-      href: "/dashboard/batches",
-    });
-  }
-
-  return alerts;
 }
 
 export function getDashboardTrends(monthsBack = 6): DashboardTrends {
