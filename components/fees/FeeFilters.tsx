@@ -11,7 +11,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { monthLabel } from "@/lib/mock/fees";
+import { monthLabel } from "@/lib/calculations/fees";
 import type { Batch } from "@/types/batch";
 
 interface FeeFiltersProps {

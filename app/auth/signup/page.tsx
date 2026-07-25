@@ -2,6 +2,7 @@
 
 import * as React from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -11,6 +12,7 @@ import { toast } from "sonner";
 import { Logo } from "@/components/branding/logo";
 import { PageHeader } from "@/components/layout/page-header";
 import { createClient } from "@/lib/supabase/client";
+import { signUp } from "@/server/auth/actions";
 
 function GoogleIcon() {
   return (
@@ -36,14 +38,33 @@ function GoogleIcon() {
 }
 
 export default function SignupPage() {
+  const router = useRouter();
   const [fullName, setFullName] = React.useState("");
   const [email, setEmail] = React.useState("");
   const [password, setPassword] = React.useState("");
   const [confirmPassword, setConfirmPassword] = React.useState("");
+  const [isSubmitting, setIsSubmitting] = React.useState(false);
 
-  function handleSubmit(e: React.FormEvent) {
+  async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    // Backend authentication to be added later
+
+    if (password !== confirmPassword) {
+      toast.error("Passwords do not match.");
+      return;
+    }
+
+    setIsSubmitting(true);
+
+    const { error } = await signUp(email, password, fullName);
+
+    if (error) {
+      toast.error(error);
+      setIsSubmitting(false);
+      return;
+    }
+
+    toast.success("Check your email to confirm your account.");
+    router.push("/auth/login");
   }
 
   async function handleGoogleSignIn() {
@@ -130,9 +151,10 @@ export default function SignupPage() {
 
               <Button
                 type="submit"
+                disabled={isSubmitting}
                 className="h-11 w-full rounded-xl transition-transform duration-200 hover:scale-[1.02]"
               >
-                Create Account
+                {isSubmitting ? "Creating account..." : "Create Account"}
               </Button>
             </form>
 

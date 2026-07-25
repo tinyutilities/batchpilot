@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import GradeBadge from "@/components/marks/GradeBadge";
-import { calculateGrade, calculatePercentage } from "@/lib/mock/marks";
+import { calculateGrade, calculatePercentage } from "@/lib/calculations/marks";
 import { cn } from "@/lib/utils";
 import type { MarkEntryInput, MarkStatus } from "@/types/marks";
 import type { Student } from "@/types/student";

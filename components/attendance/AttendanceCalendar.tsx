@@ -1,6 +1,5 @@
 import { format } from "date-fns";
-import { cn } from "@/lib/utils";
-import { toDateKey } from "@/lib/mock/attendance";
+import { cn, toDateKey } from "@/lib/utils";
 import type { AttendanceRecord, AttendanceStatus } from "@/types/attendance";
 
 interface AttendanceCalendarProps {

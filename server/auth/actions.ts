@@ -25,7 +25,15 @@ export async function signInWithGoogle() {
   }
 }
 
-export async function signInWithPassword(email: string, password: string) {
+// Returns a result object instead of throwing/redirecting — this is called
+// directly from a client event handler, and `redirect()` thrown from a
+// server action invoked that way needs to unwind back through the client's
+// try/catch untouched for Next.js to actually perform the navigation. The
+// client does its own `router.push()` on success instead.
+export async function signInWithPassword(
+  email: string,
+  password: string
+): Promise<{ error: string | null }> {
   const supabase = await createClient()
 
   const { error } = await supabase.auth.signInWithPassword({
@@ -33,14 +41,14 @@ export async function signInWithPassword(email: string, password: string) {
     password,
   })
 
-  if (error) {
-    throw new Error(error.message)
-  }
-
-  redirect('/dashboard')
+  return { error: error?.message ?? null }
 }
 
-export async function signUp(email: string, password: string) {
+export async function signUp(
+  email: string,
+  password: string,
+  fullName: string
+): Promise<{ error: string | null }> {
   const supabase = await createClient()
   const headersList = await headers()
   const origin = headersList.get('origin')
@@ -50,24 +58,17 @@ export async function signUp(email: string, password: string) {
     password,
     options: {
       emailRedirectTo: `${origin}/auth/callback`,
+      data: { full_name: fullName },
     },
   })
 
-  if (error) {
-    throw new Error(error.message)
-  }
-
-  redirect('/auth/login?message=Check your email to confirm your account')
+  return { error: error?.message ?? null }
 }
 
-export async function signOut() {
+export async function signOut(): Promise<{ error: string | null }> {
   const supabase = await createClient()
 
   const { error } = await supabase.auth.signOut()
 
-  if (error) {
-    throw new Error(error.message)
-  }
-
-  redirect('/auth/login')
+  return { error: error?.message ?? null }
 }

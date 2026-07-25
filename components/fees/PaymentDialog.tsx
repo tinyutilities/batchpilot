@@ -8,7 +8,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import FeeForm from "@/components/fees/FeeForm";
-import { monthLabel } from "@/lib/mock/fees";
+import { monthLabel } from "@/lib/calculations/fees";
 import type { FeeRecord, PaymentInput } from "@/types/fees";
 
 interface PaymentDialogProps {

@@ -1,44 +1,15 @@
-"use client";
+import { redirect } from "next/navigation";
+import { getCurrentTeacher } from "@/server/auth/get-current-teacher";
+import { getAllBatches } from "@/server/batches/queries";
+import NewStudentFormClient from "@/components/students/NewStudentFormClient";
 
-import { useState } from "react";
-import { useRouter } from "next/navigation";
-import { toast } from "sonner";
-import { PageContainer } from "@/components/layout/page-container";
-import { PageHeader } from "@/components/layout/page-header";
-import StudentForm from "@/components/students/StudentForm";
-import { createStudent } from "@/lib/mock/student";
-import { mockBatches } from "@/lib/mock/batch";
-import type { StudentFormData } from "@/types/student";
-
-export default function AddStudentPage() {
-  const router = useRouter();
-  const [isSubmitting, setIsSubmitting] = useState(false);
-
-  function handleCreate(data: StudentFormData) {
-    setIsSubmitting(true);
-    const student = createStudent(data);
-    toast.success(`${student.fullName} was added to your students.`);
-    router.push("/dashboard/students");
+export default async function AddStudentPage() {
+  const teacher = await getCurrentTeacher();
+  if (!teacher) {
+    redirect("/auth/login");
   }
 
-  function handleCancel() {
-    router.push("/dashboard/students");
-  }
+  const batches = await getAllBatches(teacher.id);
 
-  return (
-    <PageContainer className="gap-6">
-      <PageHeader
-        title="Add Student"
-        description="Register a new student into a tuition batch."
-      />
-
-      <StudentForm
-        batches={mockBatches}
-        submitLabel="Add Student"
-        isSubmitting={isSubmitting}
-        onSubmit={handleCreate}
-        onCancel={handleCancel}
-      />
-    </PageContainer>
-  );
+  return <NewStudentFormClient batches={batches} />;
 }

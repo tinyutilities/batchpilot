@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { ClipboardCopyIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -14,6 +15,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { FormSection } from "@/components/forms/form-section";
+import { TimeSelect } from "@/components/forms/TimeSelect";
 import type { BatchFormData, BatchStatus, WeekDay } from "@/types/batch";
 
 interface BatchFormProps {
@@ -115,6 +117,22 @@ export default function BatchForm({
       delete next[day];
       return next;
     });
+  }
+
+  function applyTimingToAllDays(sourceDay: WeekDay) {
+    setFormData((prev) => {
+      const source = prev.schedule.find((entry) => entry.day === sourceDay);
+      if (!source || !source.startTime || !source.endTime) return prev;
+      return {
+        ...prev,
+        schedule: prev.schedule.map((entry) =>
+          entry.day === sourceDay
+            ? entry
+            : { ...entry, startTime: source.startTime, endTime: source.endTime },
+        ),
+      };
+    });
+    setScheduleErrors({});
   }
 
   function validate(): boolean {
@@ -253,6 +271,12 @@ export default function BatchForm({
                     const entry = formData.schedule.find(
                       (s) => s.day === day.id,
                     )!;
+                    const selectedDayCount = formData.schedule.length;
+                    const canApplyToAllDays =
+                      selectedDayCount > 1 &&
+                      Boolean(entry.startTime) &&
+                      Boolean(entry.endTime);
+
                     return (
                       <div
                         key={day.id}
@@ -263,42 +287,26 @@ export default function BatchForm({
                         </p>
                         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                           <div className="flex flex-col gap-2">
-                            <Label htmlFor={`start-${day.id}`}>
-                              Start Time *
-                            </Label>
-                            <Input
-                              id={`start-${day.id}`}
-                              type="time"
+                            <Label>Start Time *</Label>
+                            <TimeSelect
+                              label={`${day.label} start time`}
                               value={entry.startTime}
-                              onChange={(e) =>
-                                updateScheduleTime(
-                                  day.id,
-                                  "startTime",
-                                  e.target.value,
-                                )
+                              onChange={(value) =>
+                                updateScheduleTime(day.id, "startTime", value)
                               }
-                              aria-invalid={Boolean(scheduleErrors[day.id])}
-                              className="h-11 rounded-xl"
+                              invalid={Boolean(scheduleErrors[day.id])}
                             />
                           </div>
 
                           <div className="flex flex-col gap-2">
-                            <Label htmlFor={`end-${day.id}`}>
-                              End Time *
-                            </Label>
-                            <Input
-                              id={`end-${day.id}`}
-                              type="time"
+                            <Label>End Time *</Label>
+                            <TimeSelect
+                              label={`${day.label} end time`}
                               value={entry.endTime}
-                              onChange={(e) =>
-                                updateScheduleTime(
-                                  day.id,
-                                  "endTime",
-                                  e.target.value,
-                                )
+                              onChange={(value) =>
+                                updateScheduleTime(day.id, "endTime", value)
                               }
-                              aria-invalid={Boolean(scheduleErrors[day.id])}
-                              className="h-11 rounded-xl"
+                              invalid={Boolean(scheduleErrors[day.id])}
                             />
                           </div>
                         </div>
@@ -306,6 +314,18 @@ export default function BatchForm({
                           <p className="text-xs text-destructive">
                             {scheduleErrors[day.id]}
                           </p>
+                        )}
+                        {canApplyToAllDays && (
+                          <Button
+                            type="button"
+                            variant="outline"
+                            size="sm"
+                            className="w-fit gap-1.5 rounded-lg text-xs"
+                            onClick={() => applyTimingToAllDays(day.id)}
+                          >
+                            <ClipboardCopyIcon className="size-3.5" aria-hidden="true" />
+                            Apply {day.label} timing to all selected days
+                          </Button>
                         )}
                       </div>
                     );

@@ -19,7 +19,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { cn } from "@/lib/utils";
-import { formatBatchSchedule } from "@/lib/mock/batch";
+import { formatBatchSchedule } from "@/lib/calculations/batch";
 import type { Batch } from "@/types/batch";
 
 interface BatchCardProps {

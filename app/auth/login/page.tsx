@@ -3,7 +3,7 @@
 import * as React from "react";
 import { Suspense } from "react";
 import Link from "next/link";
-import { useSearchParams } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { Eye, EyeOff } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -14,6 +14,7 @@ import { toast } from "sonner";
 import { Logo } from "@/components/branding/logo";
 import { PageHeader } from "@/components/layout/page-header";
 import { createClient } from "@/lib/supabase/client";
+import { signInWithPassword } from "@/server/auth/actions";
 
 function GoogleIcon() {
   return (
@@ -39,15 +40,28 @@ function GoogleIcon() {
 }
 
 function LoginContent() {
+  const router = useRouter();
   const searchParams = useSearchParams();
   const oauthError = searchParams.get("error");
   const [email, setEmail] = React.useState("");
   const [password, setPassword] = React.useState("");
   const [showPassword, setShowPassword] = React.useState(false);
+  const [isSubmitting, setIsSubmitting] = React.useState(false);
 
-  function handleSubmit(e: React.FormEvent) {
+  async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    // Backend authentication to be added later
+    setIsSubmitting(true);
+
+    const { error } = await signInWithPassword(email, password);
+
+    if (error) {
+      toast.error(error);
+      setIsSubmitting(false);
+      return;
+    }
+
+    router.push("/dashboard");
+    router.refresh();
   }
 
   async function handleGoogleSignIn() {
@@ -129,9 +143,10 @@ function LoginContent() {
 
               <Button
                 type="submit"
+                disabled={isSubmitting}
                 className="h-11 w-full rounded-xl transition-transform duration-200 hover:scale-[1.02]"
               >
-                Sign In
+                {isSubmitting ? "Signing in..." : "Sign In"}
               </Button>
             </form>
 

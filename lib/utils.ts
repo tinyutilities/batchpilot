@@ -18,6 +18,14 @@ export function toMonthKey(date: Date): string {
   return `${year}-${month}`
 }
 
+// Inverse of toDateKey — parses using local date components (not UTC, unlike
+// `new Date("YYYY-MM-DD")`) so a value written via toDateKey round-trips
+// through storage without shifting a day in non-UTC timezones.
+export function parseDateKey(dateKey: string): Date {
+  const [year, month, day] = dateKey.split("-").map(Number)
+  return new Date(year, month - 1, day)
+}
+
 // Deterministic pseudo-random generator (not Math.random()) so seed
 // mock data stays stable across reloads within a session.
 export function seededRandom(seed: number): number {

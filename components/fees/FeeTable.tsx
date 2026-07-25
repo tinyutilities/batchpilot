@@ -13,7 +13,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import PaymentStatusBadge from "@/components/fees/PaymentStatusBadge";
-import { monthLabel } from "@/lib/mock/fees";
+import { monthLabel } from "@/lib/calculations/fees";
 import { cn } from "@/lib/utils";
 import type { FeeTableRow } from "@/types/fees";
 

@@ -8,45 +8,111 @@ datasource db {
   directUrl = env("DIRECT_URL")
 }
 
-enum AttendanceStatus {
-  PRESENT
-  ABSENT
-}
-
 enum Role {
   ADMIN
   TEACHER
 }
 
-model Teacher {
-  id        String   @id
-  name      String?
-  username  String?
-  email     String   @unique
-  phone     String?
-  imageUrl  String?
-  isActive  Boolean  @default(true)
-  role      Role     @default(TEACHER)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+enum BatchStatus {
+  ACTIVE
+  INACTIVE
+}
 
-  batches Batch[]
+enum StudentStatus {
+  ACTIVE
+  INACTIVE
+}
+
+enum Gender {
+  MALE
+  FEMALE
+  OTHER
+}
+
+enum WeekDay {
+  MON
+  TUE
+  WED
+  THU
+  FRI
+  SAT
+  SUN
+}
+
+enum AttendanceStatus {
+  PRESENT
+  ABSENT
+  LATE
+  EXCUSED
+}
+
+enum MarkStatus {
+  PRESENT
+  ABSENT
+}
+
+enum PaymentMethod {
+  CASH
+  UPI
+  BANK_TRANSFER
+  CARD
+  CHEQUE
+}
+
+model Teacher {
+  id                    String   @id
+  fullName              String?
+  username              String?
+  email                 String   @unique
+  phone                 String?
+  imageUrl              String?
+  designation           String   @default("")
+  isActive              Boolean  @default(true)
+  role                  Role     @default(TEACHER)
+  emailNotifications    Boolean  @default(true)
+  autoReports           Boolean  @default(false)
+  teachesUnderInstitute Boolean  @default(false)
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
+
+  institute Institute?
+  batches   Batch[]
 
   @@map("teachers")
 }
 
+model Institute {
+  id            String   @id @default(cuid())
+  teacherId     String   @unique
+  name          String   @default("")
+  address       String   @default("")
+  city          String   @default("")
+  state         String   @default("")
+  pincode       String   @default("")
+  contactNumber String   @default("")
+  website       String   @default("")
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  teacher Teacher @relation(fields: [teacherId], references: [id], onDelete: Cascade)
+
+  @@map("institutes")
+}
+
 model Batch {
-  id             String   @id
+  id             String      @id @default(cuid())
   name           String
-  subject        String?
-  description    String?
+  subject        String
   googleMeetLink String?
-  isArchived     Boolean  @default(false)
-  createdAt      DateTime @default(now())
-  updatedAt      DateTime @updatedAt
+  capacity       Int         @default(0)
+  monthlyFee     Decimal?    @db.Decimal(10, 2)
+  status         BatchStatus @default(ACTIVE)
+  createdAt      DateTime    @default(now())
+  updatedAt      DateTime    @updatedAt
   teacherId      String
 
-  teacher     Teacher      @relation(fields: [teacherId], references: [id], onDelete: Cascade)
+  teacher     Teacher              @relation(fields: [teacherId], references: [id], onDelete: Cascade)
+  schedule    BatchScheduleEntry[]
   attendances Attendance[]
   exams       Exam[]
   fees        Fee[]
@@ -56,33 +122,60 @@ model Batch {
   @@map("batches")
 }
 
-model Student {
-  id         String   @id
-  name       String
-  rollNumber String?
-  phone      String?
-  school     String?
-  notes      String?
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @updatedAt
-  batchId    String
+model BatchScheduleEntry {
+  id        String  @id @default(cuid())
+  batchId   String
+  day       WeekDay
+  startTime String
+  endTime   String
 
-  batch       Batch        @relation(fields: [batchId], references: [id], onDelete: Cascade)
+  batch Batch @relation(fields: [batchId], references: [id], onDelete: Cascade)
+
+  @@index([batchId])
+  @@map("batch_schedule_entries")
+}
+
+model Student {
+  id            String        @id @default(cuid())
+  firstName     String
+  lastName      String
+  email         String        @default("")
+  phone         String?
+  gender        Gender
+  dateOfBirth   DateTime?
+  guardianName  String        @default("")
+  guardianPhone String        @default("")
+  address       String        @default("")
+  school        String?
+  avatar        String?
+  status        StudentStatus @default(ACTIVE)
+  rollNumber    String?
+  notes         String?
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+  batchId       String?
+  teacherId     String
+
+  batch       Batch?       @relation(fields: [batchId], references: [id], onDelete: SetNull)
   attendances Attendance[]
   fees        Fee[]
+  payments    Payment[]
   marks       Mark[]
 
   @@unique([batchId, rollNumber])
   @@index([batchId])
+  @@index([teacherId])
   @@map("students")
 }
 
 model Attendance {
-  id        String           @id
+  id        String           @id @default(cuid())
   date      DateTime
   status    AttendanceStatus
+  markedAt  DateTime         @default(now())
   studentId String
   batchId   String
+  teacherId String
 
   batch   Batch   @relation(fields: [batchId], references: [id], onDelete: Cascade)
   student Student @relation(fields: [studentId], references: [id], onDelete: Cascade)
@@ -91,51 +184,82 @@ model Attendance {
   @@index([batchId])
   @@index([date])
   @@index([studentId])
+  @@index([teacherId])
   @@map("attendances")
 }
 
 model Fee {
-  id        String    @id
-  amount    Decimal   @db.Decimal(10, 2)
-  dueDate   DateTime
-  paid      Boolean   @default(false)
-  paidDate  DateTime?
-  month     String?
-  remarks   String?
-  studentId String
-  batchId   String
+  id         String   @id @default(cuid())
+  amount     Decimal  @db.Decimal(10, 2)
+  amountPaid Decimal  @default(0) @db.Decimal(10, 2)
+  dueDate    DateTime
+  month      String
+  remarks    String?
+  createdAt  DateTime @default(now())
+  studentId  String
+  batchId    String
+  teacherId  String
 
-  batch   Batch   @relation(fields: [batchId], references: [id], onDelete: Cascade)
-  student Student @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  batch    Batch     @relation(fields: [batchId], references: [id], onDelete: Cascade)
+  student  Student   @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  payments Payment[]
 
   @@index([batchId])
   @@index([studentId])
+  @@index([teacherId])
   @@map("fees")
 }
 
+model Payment {
+  id              String        @id @default(cuid())
+  feeId           String
+  studentId       String
+  teacherId       String
+  amount          Decimal       @db.Decimal(10, 2)
+  method          PaymentMethod
+  date            DateTime
+  referenceNumber String?
+  notes           String?
+  createdAt       DateTime      @default(now())
+
+  fee     Fee     @relation(fields: [feeId], references: [id], onDelete: Cascade)
+  student Student @relation(fields: [studentId], references: [id], onDelete: Cascade)
+
+  @@index([feeId])
+  @@index([studentId])
+  @@index([teacherId])
+  @@map("payments")
+}
+
 model Exam {
-  id          String   @id
-  subject     String
-  description String?
-  totalMarks  Int
-  examDate    DateTime
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-  batchId     String
+  id        String   @id @default(cuid())
+  name      String
+  subject   String
+  remarks   String?
+  maxMarks  Int
+  testDate  DateTime
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  batchId   String
+  teacherId String
 
   batch Batch  @relation(fields: [batchId], references: [id], onDelete: Cascade)
   marks Mark[]
 
   @@index([batchId])
+  @@index([teacherId])
   @@map("exams")
 }
 
 model Mark {
-  id        String  @id
-  marks     Decimal @db.Decimal(6, 2)
-  remarks   String?
-  studentId String
-  examId    String
+  id            String     @id @default(cuid())
+  marksObtained Decimal    @db.Decimal(6, 2)
+  status        MarkStatus @default(PRESENT)
+  remarks       String?
+  createdAt     DateTime   @default(now())
+  studentId     String
+  examId        String
+  teacherId     String
 
   exam    Exam    @relation(fields: [examId], references: [id], onDelete: Cascade)
   student Student @relation(fields: [studentId], references: [id], onDelete: Cascade)
@@ -143,5 +267,6 @@ model Mark {
   @@unique([studentId, examId])
   @@index([examId])
   @@index([studentId])
+  @@index([teacherId])
   @@map("marks")
 }

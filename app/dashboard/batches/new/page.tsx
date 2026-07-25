@@ -6,20 +6,28 @@ import { toast } from "sonner";
 import { PageContainer } from "@/components/layout/page-container";
 import { PageHeader } from "@/components/layout/page-header";
 import BatchForm from "@/components/batches/BatchForm";
-import { createBatch } from "@/lib/mock/batch";
-import { useTeacherSettings } from "@/lib/hooks/use-teacher-settings";
+import { createBatch } from "@/server/batches/actions";
 import type { BatchFormData } from "@/types/batch";
 
 export default function NewBatchPage() {
   const router = useRouter();
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const { profile } = useTeacherSettings();
 
-  function handleCreate(data: BatchFormData) {
+  async function handleCreate(data: BatchFormData) {
     setIsSubmitting(true);
-    const batch = createBatch(data, profile.fullName);
-    toast.success(`${batch.name} was created.`);
-    router.push("/dashboard/batches");
+    try {
+      await createBatch(data);
+      toast.success(`Batch "${data.name}" created successfully.`);
+      router.push("/dashboard/batches");
+      router.refresh();
+    } catch (error) {
+      setIsSubmitting(false);
+      toast.error(
+        error instanceof Error
+          ? error.message
+          : "Failed to create batch. Please try again.",
+      );
+    }
   }
 
   function handleCancel() {
