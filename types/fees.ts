@@ -1,6 +1,6 @@
 // types/fees.ts
 
-export type FeeStatus = "paid" | "partial" | "pending" | "overdue";
+export type FeeStatus = "paid" | "partial" | "pending" | "overdue" | "not_due";
 
 export type PaymentMethod =
   | "cash"
@@ -101,4 +101,19 @@ export interface FeeTableRow {
   studentId: string;
   studentName: string;
   batchName: string;
+}
+
+export interface BatchFeeGridCell {
+  month: string;
+  status: FeeStatus;
+  // null until a Fee row has actually been materialized for this student+month.
+  feeId: string | null;
+  amount: number | null;
+  amountPaid: number | null;
+}
+
+export interface BatchFeeGridRow {
+  studentId: string;
+  studentName: string;
+  cells: BatchFeeGridCell[];
 }

@@ -2,6 +2,8 @@ import { prisma } from "@/server/db/prisma";
 import { mapFee, mapPayment } from "@/server/fees/mappers";
 import { toMonthKey } from "@/lib/utils";
 import type {
+  BatchFeeGridCell,
+  BatchFeeGridRow,
   FeeRecord,
   MonthlyCollectionStats,
   Payment,
@@ -19,6 +21,14 @@ export async function getAllFees(teacherId: string): Promise<FeeRecord[]> {
 export async function getOverdueFees(teacherId: string): Promise<FeeRecord[]> {
   const all = await getAllFees(teacherId);
   return all.filter((fee) => fee.status === "overdue");
+}
+
+export async function getFeeById(
+  teacherId: string,
+  feeId: string,
+): Promise<FeeRecord | null> {
+  const row = await prisma.fee.findFirst({ where: { id: feeId, teacherId } });
+  return row ? mapFee(row) : null;
 }
 
 export async function getFeesByStudent(
@@ -101,4 +111,72 @@ export async function getStudentFeeSummary(
     fees,
     payments,
   };
+}
+
+// Student x month view for a single batch. Months without a materialized
+// Fee row are synthesized (never persisted) so the grid can show a full
+// rolling window even before any billing action has touched that month —
+// "not_due" for the future, "pending" for an unbilled past/current month.
+export async function getBatchFeeGrid(
+  teacherId: string,
+  batchId: string,
+  monthsBack = 6,
+): Promise<BatchFeeGridRow[]> {
+  const students = await prisma.student.findMany({
+    where: { teacherId, batchId },
+    orderBy: [{ firstName: "asc" }, { lastName: "asc" }],
+  });
+  const studentIds = students.map((s) => s.id);
+
+  const fees =
+    studentIds.length > 0
+      ? await prisma.fee.findMany({
+          where: { teacherId, batchId, studentId: { in: studentIds } },
+        })
+      : [];
+
+  const feesByStudent = new Map<string, Map<string, (typeof fees)[number]>>();
+  for (const fee of fees) {
+    const byMonth = feesByStudent.get(fee.studentId) ?? new Map();
+    byMonth.set(fee.month, fee);
+    feesByStudent.set(fee.studentId, byMonth);
+  }
+
+  const today = new Date();
+  const currentMonthKey = toMonthKey(today);
+  const months = Array.from({ length: monthsBack }, (_, i) => {
+    const offset = monthsBack - 1 - i;
+    return toMonthKey(new Date(today.getFullYear(), today.getMonth() - offset, 1));
+  });
+
+  return students.map((student) => {
+    const byMonth = feesByStudent.get(student.id) ?? new Map();
+
+    const cells: BatchFeeGridCell[] = months.map((month) => {
+      const feeRow = byMonth.get(month);
+      if (feeRow) {
+        const mapped = mapFee(feeRow);
+        return {
+          month,
+          status: mapped.status,
+          feeId: mapped.id,
+          amount: mapped.amount,
+          amountPaid: mapped.amountPaid,
+        };
+      }
+      return {
+        month,
+        status: month > currentMonthKey ? "not_due" : "pending",
+        feeId: null,
+        amount: null,
+        amountPaid: null,
+      };
+    });
+
+    return {
+      studentId: student.id,
+      studentName: `${student.firstName} ${student.lastName}`.trim(),
+      cells,
+    };
+  });
 }

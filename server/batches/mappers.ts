@@ -77,6 +77,7 @@ export function mapBatch(row: BatchRow): Batch {
     schedule: row.schedule.map(mapScheduleEntry),
     capacity: row.capacity,
     status: batchStatusToUI(row.status),
+    monthlyFee: row.monthlyFee !== null ? Number(row.monthlyFee) : null,
     createdAt: row.createdAt.toISOString(),
   };
 }

@@ -2,11 +2,28 @@
 
 import { prisma } from "@/server/db/prisma";
 import { getCurrentTeacher } from "@/server/auth/get-current-teacher";
+import {
+  getAllStudents,
+  getAttendancePercentagesByStudentIds,
+  getPendingFeesByStudentIds,
+} from "@/server/students/queries";
 import { studentFormSchema } from "@/server/students/validators";
-import { genderToPrisma, studentStatusToPrisma } from "@/server/students/mappers";
-import type { StudentFormData } from "@/types/student";
+import {
+  genderToPrisma,
+  mapStudent,
+  studentStatusToPrisma,
+} from "@/server/students/mappers";
+import type { Student, StudentFormData } from "@/types/student";
 
-export async function createStudent(data: StudentFormData): Promise<string> {
+// Client-callable wrapper around getAllStudents for the SWR cache layer —
+// queries.ts stays teacherId-explicit for Server Component call sites.
+export async function fetchStudents(): Promise<Student[]> {
+  const teacher = await getCurrentTeacher();
+  if (!teacher) throw new Error("Not authenticated");
+  return getAllStudents(teacher.id);
+}
+
+export async function createStudent(data: StudentFormData): Promise<Student> {
   const teacher = await getCurrentTeacher();
   if (!teacher) throw new Error("Not authenticated");
 
@@ -30,7 +47,19 @@ export async function createStudent(data: StudentFormData): Promise<string> {
     },
   });
 
-  return student.id;
+  const [batch, attendanceByStudent, pendingFeesByStudent] = await Promise.all([
+    student.batchId
+      ? prisma.batch.findUnique({ where: { id: student.batchId }, select: { name: true } })
+      : Promise.resolve(null),
+    getAttendancePercentagesByStudentIds(teacher.id, [student.id]),
+    getPendingFeesByStudentIds(teacher.id, [student.id]),
+  ]);
+
+  return mapStudent(student, {
+    batchName: batch?.name ?? "",
+    attendancePercentage: attendanceByStudent.get(student.id) ?? 0,
+    pendingFees: pendingFeesByStudent.get(student.id) ?? 0,
+  });
 }
 
 export async function updateStudent(

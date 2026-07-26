@@ -21,7 +21,7 @@ import PaymentDialog from "@/components/fees/PaymentDialog";
 import GradeBadge from "@/components/marks/GradeBadge";
 import PerformanceChart from "@/components/shared/PerformanceChart";
 import { deleteStudent } from "@/server/students/actions";
-import { getOrCreateCurrentMonthFee, recordPayment } from "@/server/fees/actions";
+import { getOrCreateFeeForMonth, recordPayment } from "@/server/fees/actions";
 import { formatPaymentMethod, monthLabel } from "@/lib/calculations/fees";
 import type { AttendanceRecord, StudentAttendanceSummary } from "@/types/attendance";
 import type { FeeRecord, PaymentInput, StudentFeeSummary } from "@/types/fees";
@@ -88,7 +88,7 @@ export default function StudentDetailPageClient({
   }
 
   async function handleOpenPayment() {
-    const fee = await getOrCreateCurrentMonthFee(studentId);
+    const fee = await getOrCreateFeeForMonth(studentId);
     if (!fee) {
       toast.error("This student isn't assigned to a batch, so no fee can be billed.");
       return;

@@ -22,8 +22,8 @@ export default function NewStudentFormClient({
 
   async function handleCreate(data: StudentFormData) {
     setIsSubmitting(true);
-    await createStudent(data);
-    toast.success(`${data.firstName} ${data.lastName} was added to your students.`);
+    const student = await createStudent(data);
+    toast.success(`${student.fullName} was added to your students.`);
     router.push("/dashboard/students");
     router.refresh();
   }

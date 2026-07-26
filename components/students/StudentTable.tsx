@@ -29,6 +29,7 @@ interface StudentTableProps {
   onViewStudent?: (student: Student) => void;
   onEditStudent?: (student: Student) => void;
   onDeleteStudent?: (student: Student) => void;
+  onAddStudent?: () => void;
 }
 
 function getInitials(firstName: string, lastName: string) {
@@ -213,7 +214,13 @@ function TableSkeleton() {
   );
 }
 
-function EmptyState({ hasAnyStudents }: { hasAnyStudents: boolean }) {
+function EmptyState({
+  hasAnyStudents,
+  onAddStudent,
+}: {
+  hasAnyStudents: boolean;
+  onAddStudent?: () => void;
+}) {
   return (
     <div className="flex flex-col items-center justify-center gap-3 px-6 py-10 text-center">
       <div className="flex h-12 w-12 items-center justify-center rounded-full bg-slate-100 dark:bg-slate-800">
@@ -234,15 +241,25 @@ function EmptyState({ hasAnyStudents }: { hasAnyStudents: boolean }) {
       ) : (
         <>
           <p className="text-sm font-medium text-foreground">
-            No students yet
+            No students yet.
           </p>
           <p className="max-w-xs text-sm text-muted-foreground">
             Add your first student to start tracking attendance, fees and
             marks.
           </p>
-          <Button asChild className="mt-2 h-11 rounded-xl">
-            <Link href="/dashboard/students/new">Add Student</Link>
-          </Button>
+          {onAddStudent ? (
+            <Button
+              type="button"
+              className="mt-2 h-11 rounded-xl"
+              onClick={onAddStudent}
+            >
+              Add Student
+            </Button>
+          ) : (
+            <Button asChild className="mt-2 h-11 rounded-xl">
+              <Link href="/dashboard/students/new">Add Student</Link>
+            </Button>
+          )}
         </>
       )}
     </div>
@@ -256,6 +273,7 @@ export default function StudentTable({
   onViewStudent,
   onEditStudent,
   onDeleteStudent,
+  onAddStudent,
 }: StudentTableProps) {
   if (isLoading) {
     return (
@@ -268,7 +286,7 @@ export default function StudentTable({
   if (students.length === 0) {
     return (
       <div className="rounded-xl border border-slate-200 bg-white dark:border-slate-800 dark:bg-slate-950">
-        <EmptyState hasAnyStudents={hasAnyStudents} />
+        <EmptyState hasAnyStudents={hasAnyStudents} onAddStudent={onAddStudent} />
       </div>
     );
   }

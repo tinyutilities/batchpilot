@@ -57,6 +57,7 @@ export default function EditBatchFormClient({
     schedule: batch.schedule,
     capacity: batch.capacity,
     status: batch.status,
+    monthlyFee: batch.monthlyFee ?? undefined,
   };
 
   async function handleUpdate(data: BatchFormData) {

@@ -359,6 +359,24 @@ export default function BatchForm({
               </div>
 
               <div className="flex flex-col gap-2">
+                <Label htmlFor="monthlyFee">Monthly Fee (₹)</Label>
+                <Input
+                  id="monthlyFee"
+                  type="number"
+                  min={0}
+                  placeholder="Leave blank to use default"
+                  value={formData.monthlyFee || ""}
+                  onChange={(e) =>
+                    updateField(
+                      "monthlyFee",
+                      e.target.value ? Number(e.target.value) : undefined,
+                    )
+                  }
+                  className="h-11 rounded-xl"
+                />
+              </div>
+
+              <div className="flex flex-col gap-2">
                 <Label htmlFor="googleMeetLink">Google Meet Link</Label>
                 <Input
                   id="googleMeetLink"

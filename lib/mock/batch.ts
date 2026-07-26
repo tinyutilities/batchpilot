@@ -27,6 +27,7 @@ const DEMO_BATCHES: Batch[] = [
     ],
     capacity: 20,
     status: "active",
+    monthlyFee: 2500,
     createdAt: "2025-05-01T09:00:00.000Z",
   },
   {
@@ -41,6 +42,7 @@ const DEMO_BATCHES: Batch[] = [
     ],
     capacity: 18,
     status: "active",
+    monthlyFee: 3000,
     createdAt: "2025-05-02T09:00:00.000Z",
   },
   {
@@ -55,6 +57,7 @@ const DEMO_BATCHES: Batch[] = [
     ],
     capacity: 15,
     status: "active",
+    monthlyFee: 2800,
     createdAt: "2025-05-03T09:00:00.000Z",
   },
   {
@@ -66,6 +69,7 @@ const DEMO_BATCHES: Batch[] = [
     schedule: [{ day: "sat", startTime: "10:00", endTime: "12:00" }],
     capacity: 25,
     status: "inactive",
+    monthlyFee: null,
     createdAt: "2025-05-04T09:00:00.000Z",
   },
 ];
@@ -205,6 +209,7 @@ export function createBatch(data: BatchFormData, teacherName: string): Batch {
   const batch: Batch = {
     id: `batch-${crypto.randomUUID()}`,
     ...data,
+    monthlyFee: data.monthlyFee ?? null,
     teacherName,
     createdAt: new Date().toISOString(),
   };
@@ -224,6 +229,7 @@ export function updateBatch(
   const updated: Batch = {
     ...mockBatches[index],
     ...data,
+    monthlyFee: data.monthlyFee ?? null,
     teacherName,
   };
   mockBatches[index] = updated;

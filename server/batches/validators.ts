@@ -13,4 +13,5 @@ export const batchFormSchema = z.object({
   schedule: z.array(scheduleEntrySchema),
   capacity: z.number().int().min(0).default(0),
   status: z.enum(["active", "inactive"]),
+  monthlyFee: z.number().positive().optional(),
 });

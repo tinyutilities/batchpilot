@@ -31,6 +31,8 @@ export interface Batch {
   // 0 means no limit set ("Unlimited") — capacity is optional at creation.
   capacity: number;
   status: BatchStatus;
+  // null means not set — falls back to a default rate when fees are billed.
+  monthlyFee: number | null;
   createdAt: string;
 }
 
@@ -58,6 +60,7 @@ export interface BatchFormData {
   schedule: BatchScheduleEntry[];
   capacity: number;
   status: BatchStatus;
+  monthlyFee?: number;
 }
 
 export type BatchSortOption =

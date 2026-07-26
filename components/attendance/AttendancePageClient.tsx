@@ -213,7 +213,7 @@ export default function AttendancePageClient({
             />
           </div>
           <p className="text-sm font-medium text-foreground">
-            No attendance has been recorded yet
+            No attendance records yet.
           </p>
           <p className="max-w-xs text-sm text-muted-foreground">
             Mark attendance for a batch to start building attendance history.

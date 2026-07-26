@@ -16,9 +16,12 @@ export default function NewBatchPage() {
   async function handleCreate(data: BatchFormData) {
     setIsSubmitting(true);
     try {
-      await createBatch(data);
-      toast.success(`Batch "${data.name}" created successfully.`);
-      router.push("/dashboard/batches");
+      const batchId = await createBatch(data);
+      toast.success("Batch created successfully.");
+      // Land directly on the new batch with the Add Student dialog ready to
+      // go — the onboarding flow is Create Batch -> Open Batch -> Add
+      // Student, not back to the list.
+      router.push(`/dashboard/batches/${batchId}?addStudent=1`);
       router.refresh();
     } catch (error) {
       setIsSubmitting(false);

@@ -3,9 +3,11 @@
 import {
   CalendarClock,
   Eye,
+  IndianRupee,
   MoreHorizontal,
   Pencil,
   Trash2,
+  UserPlus,
   Users,
   Video,
 } from "lucide-react";
@@ -28,6 +30,7 @@ interface BatchCardProps {
   onView: (batch: Batch) => void;
   onEdit: (batch: Batch) => void;
   onDelete: (batch: Batch) => void;
+  onAddStudent: (batch: Batch) => void;
 }
 
 function getCapacityColor(percentage: number) {
@@ -46,6 +49,7 @@ export default function BatchCard({
   onView,
   onEdit,
   onDelete,
+  onAddStudent,
 }: BatchCardProps) {
   const capacityPercentage =
     batch.capacity > 0 ? Math.round((enrolledCount / batch.capacity) * 100) : 0;
@@ -99,6 +103,10 @@ export default function BatchCard({
                 <Eye className="mr-2 h-4 w-4" aria-hidden="true" />
                 View
               </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => onAddStudent(batch)}>
+                <UserPlus className="mr-2 h-4 w-4" aria-hidden="true" />
+                Add Student
+              </DropdownMenuItem>
               <DropdownMenuItem onClick={() => onEdit(batch)}>
                 <Pencil className="mr-2 h-4 w-4" aria-hidden="true" />
                 Edit
@@ -121,6 +129,16 @@ export default function BatchCard({
           />
           {formatBatchSchedule(batch.schedule)}
         </div>
+
+        {batch.monthlyFee != null && (
+          <div className="flex items-center gap-2 text-sm text-muted-foreground">
+            <IndianRupee
+              className="h-4 w-4 shrink-0 text-slate-400"
+              aria-hidden="true"
+            />
+            {`₹${batch.monthlyFee.toLocaleString("en-IN")}/month`}
+          </div>
+        )}
 
         {batch.googleMeetLink && (
           <div className="flex items-center gap-2 text-sm text-muted-foreground">

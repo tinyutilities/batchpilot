@@ -1,4 +1,10 @@
-import { AlertTriangle, CheckCircle2, CircleDashed, Clock } from "lucide-react";
+import {
+  AlertTriangle,
+  CheckCircle2,
+  CircleDashed,
+  Clock,
+  MinusCircle,
+} from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import type { FeeStatus } from "@/types/fees";
@@ -35,6 +41,12 @@ const STATUS_CONFIG: Record<
     className:
       "bg-red-50 text-red-600 hover:bg-red-50 dark:bg-red-500/10 dark:text-red-400",
     icon: AlertTriangle,
+  },
+  not_due: {
+    label: "Not Due",
+    className:
+      "bg-slate-50 text-slate-400 hover:bg-slate-50 dark:bg-slate-900 dark:text-slate-500",
+    icon: MinusCircle,
   },
 };
 

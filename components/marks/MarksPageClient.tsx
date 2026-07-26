@@ -227,7 +227,7 @@ export default function MarksPageClient({
             />
           </div>
           <p className="text-sm font-medium text-foreground">
-            No tests have been created yet
+            Create your first test.
           </p>
           <p className="max-w-xs text-sm text-muted-foreground">
             Create a test to start recording marks for a batch.

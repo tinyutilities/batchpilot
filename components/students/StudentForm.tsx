@@ -19,13 +19,22 @@ import { cn } from "@/lib/utils";
 import type { Gender, StudentFormData, StudentStatus } from "@/types/student";
 import type { Batch } from "@/types/batch";
 
+export type StudentFormSubmitIntent = "save" | "save-and-add-another";
+
 interface StudentFormProps {
   batches: Batch[];
   initialValues?: Partial<StudentFormData>;
   submitLabel: string;
-  onSubmit: (data: StudentFormData) => void;
+  onSubmit: (data: StudentFormData, intent: StudentFormSubmitIntent) => void;
   onCancel: () => void;
   isSubmitting?: boolean;
+  // Only set inside AddStudentDialog — full pages (new/edit) never show this.
+  showSaveAndAddAnother?: boolean;
+  // Dialog opens/remounts want the cursor ready to type immediately.
+  autoFocusFirstName?: boolean;
+  // When set, the Batch field renders as a fixed, non-editable value instead
+  // of a Select — used when the dialog was opened from a specific batch.
+  lockedBatchName?: string;
 }
 
 const emptyFormData: StudentFormData = {
@@ -56,6 +65,9 @@ export default function StudentForm({
   onSubmit,
   onCancel,
   isSubmitting = false,
+  showSaveAndAddAnother = false,
+  autoFocusFirstName = false,
+  lockedBatchName,
 }: StudentFormProps) {
   const [formData, setFormData] = useState<StudentFormData>({
     ...emptyFormData,
@@ -64,10 +76,20 @@ export default function StudentForm({
   const [errors, setErrors] = useState<FormErrors>({});
   // Most of this form is optional now — collapsed by default so the only
   // thing a teacher has to look at up front is what's actually required.
-  // Editing an existing student (which may already have these details
-  // filled in) opens it expanded.
+  // Editing an existing student that already has any of these optional
+  // details filled in opens it expanded; a brand-new student (even one
+  // seeded with just a preselected batch, e.g. from AddStudentDialog)
+  // starts collapsed.
   const [showMoreDetails, setShowMoreDetails] = useState(
-    Boolean(initialValues),
+    Boolean(
+      initialValues?.email ||
+        initialValues?.phone ||
+        initialValues?.dateOfBirth ||
+        initialValues?.guardianName ||
+        initialValues?.guardianPhone ||
+        initialValues?.address ||
+        initialValues?.school,
+    ),
   );
 
   function updateField<K extends keyof StudentFormData>(
@@ -111,7 +133,12 @@ export default function StudentForm({
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     if (!validate()) return;
-    onSubmit(formData);
+    onSubmit(formData, "save");
+  }
+
+  function handleSaveAndAddAnother() {
+    if (!validate()) return;
+    onSubmit(formData, "save-and-add-another");
   }
 
   return (
@@ -132,6 +159,7 @@ export default function StudentForm({
                 <Input
                   id="firstName"
                   autoComplete="given-name"
+                  autoFocus={autoFocusFirstName}
                   value={formData.firstName}
                   onChange={(e) => updateField("firstName", e.target.value)}
                   aria-invalid={Boolean(errors.firstName)}
@@ -162,26 +190,37 @@ export default function StudentForm({
               </div>
 
               <div className="flex flex-col gap-2 sm:col-span-2">
-                <Label htmlFor="batchId">Batch *</Label>
-                <Select
-                  value={formData.batchId}
-                  onValueChange={(value) => updateField("batchId", value)}
-                >
-                  <SelectTrigger
+                <Label htmlFor="batchId">
+                  {lockedBatchName ? "Batch" : "Batch *"}
+                </Label>
+                {lockedBatchName ? (
+                  <Input
                     id="batchId"
+                    value={lockedBatchName}
+                    disabled
                     className="h-11 w-full rounded-xl sm:max-w-sm"
-                    aria-invalid={Boolean(errors.batchId)}
+                  />
+                ) : (
+                  <Select
+                    value={formData.batchId}
+                    onValueChange={(value) => updateField("batchId", value)}
                   >
-                    <SelectValue placeholder="Select a batch" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {batches.map((batch) => (
-                      <SelectItem key={batch.id} value={batch.id}>
-                        {batch.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                    <SelectTrigger
+                      id="batchId"
+                      className="h-11 w-full rounded-xl sm:max-w-sm"
+                      aria-invalid={Boolean(errors.batchId)}
+                    >
+                      <SelectValue placeholder="Select a batch" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {batches.map((batch) => (
+                        <SelectItem key={batch.id} value={batch.id}>
+                          {batch.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                )}
                 {errors.batchId && (
                   <p className="text-xs text-destructive">
                     {errors.batchId}
@@ -390,6 +429,17 @@ export default function StudentForm({
             >
               Cancel
             </Button>
+            {showSaveAndAddAnother && (
+              <Button
+                type="button"
+                variant="outline"
+                className="h-11 rounded-xl sm:w-auto"
+                onClick={handleSaveAndAddAnother}
+                disabled={isSubmitting}
+              >
+                Save & Add Another
+              </Button>
+            )}
             <Button
               type="submit"
               className="h-11 rounded-xl sm:w-auto"

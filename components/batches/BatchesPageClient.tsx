@@ -13,7 +13,9 @@ import BatchStats from "@/components/batches/BatchStats";
 import BatchFilters from "@/components/batches/BatchFilters";
 import BatchCard from "@/components/batches/BatchCard";
 import BatchDeleteDialog from "@/components/batches/BatchDeleteDialog";
+import AddStudentDialog from "@/components/students/AddStudentDialog";
 import { deleteBatch } from "@/server/batches/actions";
+import { useBatches } from "@/lib/hooks/use-batches";
 import { computeBatchStats } from "@/lib/calculations/batch";
 import type { Batch } from "@/types/batch";
 
@@ -28,7 +30,12 @@ export default function BatchesPageClient({
 }: BatchesPageClientProps) {
   const router = useRouter();
 
-  const [batches, setBatches] = useState<Batch[]>(initialBatches);
+  const {
+    batches,
+    enrollmentCounts: enrollmentCountsRecord,
+    mutate: mutateBatches,
+    mutateEnrollmentCounts,
+  } = useBatches(initialBatches, initialEnrollmentCounts);
 
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedSubject, setSelectedSubject] = useState("all");
@@ -38,10 +45,13 @@ export default function BatchesPageClient({
   const [batchPendingDelete, setBatchPendingDelete] = useState<Batch | null>(
     null,
   );
+  const [addStudentTarget, setAddStudentTarget] = useState<Batch | null>(
+    null,
+  );
 
   const enrollmentCounts = useMemo(
-    () => new Map(Object.entries(initialEnrollmentCounts)),
-    [initialEnrollmentCounts],
+    () => new Map(Object.entries(enrollmentCountsRecord)),
+    [enrollmentCountsRecord],
   );
 
   const stats = useMemo(
@@ -146,12 +156,21 @@ export default function BatchesPageClient({
     setBatchPendingDelete(batch);
   }
 
+  function handleAddStudentToBatch(batch: Batch) {
+    setAddStudentTarget(batch);
+  }
+
+  // AddStudentDialog already shows its own success toast — this just keeps
+  // the enrollment-count-derived "empty batch" banner accurate.
+  function handleStudentCreated() {
+    mutateEnrollmentCounts();
+  }
+
   async function handleConfirmDelete(batch: Batch) {
     const deleted = await deleteBatch(batch.id);
     if (deleted) {
-      setBatches((prev) => prev.filter((b) => b.id !== batch.id));
+      mutateBatches(batches.filter((b) => b.id !== batch.id));
       toast.success(`${batch.name} was deleted.`);
-      router.refresh();
     }
     setBatchPendingDelete(null);
   }
@@ -204,10 +223,10 @@ export default function BatchesPageClient({
           {batches.length === 0 ? (
             <>
               <p className="text-sm font-medium text-foreground">
-                No batches yet
+                Create your first batch.
               </p>
               <p className="max-w-xs text-sm text-muted-foreground">
-                Create your first batch to start enrolling students.
+                You&apos;ll need a batch before you can start enrolling students.
               </p>
               <Button asChild className="mt-2 h-11 rounded-xl">
                 <Link href="/dashboard/batches/new">Create Batch</Link>
@@ -234,6 +253,7 @@ export default function BatchesPageClient({
               onView={handleViewBatch}
               onEdit={handleEditBatch}
               onDelete={handleDeleteBatch}
+              onAddStudent={handleAddStudentToBatch}
             />
           ))}
         </div>
@@ -250,6 +270,19 @@ export default function BatchesPageClient({
           if (!open) setBatchPendingDelete(null);
         }}
         onConfirm={handleConfirmDelete}
+      />
+
+      <AddStudentDialog
+        config={
+          addStudentTarget
+            ? { defaultBatchId: addStudentTarget.id, lockBatch: true }
+            : null
+        }
+        batches={batches}
+        onOpenChange={(open) => {
+          if (!open) setAddStudentTarget(null);
+        }}
+        onCreated={handleStudentCreated}
       />
     </PageContainer>
   );

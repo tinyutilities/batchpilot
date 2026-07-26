@@ -1,7 +1,7 @@
 "use client";
 
-import { useMemo, useState } from "react";
-import { useRouter } from "next/navigation";
+import { useEffect, useMemo, useState } from "react";
+import { useRouter, usePathname, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { format } from "date-fns";
 import {
@@ -40,6 +40,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import BatchDeleteDialog from "@/components/batches/BatchDeleteDialog";
+import AddStudentDialog from "@/components/students/AddStudentDialog";
 import {
   assignStudentToBatch,
   deleteBatch,
@@ -65,12 +66,27 @@ export default function BatchDetailPageClient({
   initialAllStudents,
 }: BatchDetailPageClientProps) {
   const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
 
   const [roster, setRoster] = useState<Student[]>(
     initialBatch?.students ?? [],
   );
   const [selectedStudentId, setSelectedStudentId] = useState("");
   const [isDeleteOpen, setIsDeleteOpen] = useState(false);
+  // Synchronous initializer so landing here straight from Create Batch opens
+  // the dialog on first render, with no flash.
+  const [addStudentOpen, setAddStudentOpen] = useState(
+    () => searchParams.get("addStudent") === "1",
+  );
+
+  useEffect(() => {
+    if (searchParams.get("addStudent") === "1") {
+      router.replace(pathname, { scroll: false });
+    }
+    // Idempotent: once the param is stripped, searchParams changes and this
+    // simply no-ops on the next run.
+  }, [searchParams, pathname, router]);
 
   const availableStudents = useMemo(
     () =>
@@ -141,6 +157,11 @@ export default function BatchDetailPageClient({
       toast.success(`${student.fullName} was removed from ${batchName}.`);
       router.refresh();
     }
+  }
+
+  function handleStudentCreated(student: Student) {
+    setRoster((prev) => [...prev, student]);
+    router.refresh();
   }
 
   async function handleConfirmDelete() {
@@ -222,6 +243,16 @@ export default function BatchDetailPageClient({
                       aria-hidden="true"
                     />
                     {formatBatchSchedule(batch.schedule)}
+                  </dd>
+                </div>
+                <div className="flex flex-col gap-1">
+                  <dt className="text-xs font-medium text-muted-foreground">
+                    Monthly Fee
+                  </dt>
+                  <dd className="font-medium text-foreground">
+                    {batch.monthlyFee != null
+                      ? `₹${batch.monthlyFee.toLocaleString("en-IN")}`
+                      : "Not set"}
                   </dd>
                 </div>
                 <div className="flex flex-col gap-1">
@@ -314,7 +345,7 @@ export default function BatchDetailPageClient({
                   onValueChange={setSelectedStudentId}
                 >
                   <SelectTrigger className="h-11 flex-1 rounded-xl">
-                    <SelectValue placeholder="Select a student to add" />
+                    <SelectValue placeholder="Select an existing student to add" />
                   </SelectTrigger>
                   <SelectContent>
                     {availableStudents.length === 0 ? (
@@ -343,6 +374,15 @@ export default function BatchDetailPageClient({
                   Add
                 </Button>
               </div>
+              <Button
+                type="button"
+                variant="outline"
+                className="h-11 w-fit gap-2 rounded-xl"
+                onClick={() => setAddStudentOpen(true)}
+              >
+                <UserPlus className="h-4 w-4" aria-hidden="true" />
+                Add New Student
+              </Button>
               {capacityPercentage >= 100 && (
                 <p className="text-xs text-amber-600 dark:text-amber-400">
                   This batch is at or over capacity.
@@ -438,6 +478,13 @@ export default function BatchDetailPageClient({
         enrolledCount={roster.length}
         onOpenChange={setIsDeleteOpen}
         onConfirm={handleConfirmDelete}
+      />
+
+      <AddStudentDialog
+        config={addStudentOpen ? { defaultBatchId: batch.id, lockBatch: true } : null}
+        batches={[batch]}
+        onOpenChange={setAddStudentOpen}
+        onCreated={handleStudentCreated}
       />
     </PageContainer>
   );

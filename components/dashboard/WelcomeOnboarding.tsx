@@ -40,12 +40,12 @@ export default function WelcomeOnboarding() {
               Step 2
             </span>
             <p className="text-base font-medium text-foreground">
-              Add your students
+              Open your batch to add students
             </p>
             <Button asChild variant="outline" className="h-11 gap-2 rounded-xl">
-              <Link href="/dashboard/students/new">
+              <Link href="/dashboard/batches">
                 <UserPlus className="h-4 w-4" aria-hidden="true" />
-                Add Students
+                Go to Batches
               </Link>
             </Button>
           </div>

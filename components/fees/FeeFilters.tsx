@@ -22,6 +22,7 @@ interface FeeFiltersProps {
   selectedSort: string;
   batches: Batch[];
   months: string[];
+  hasActiveFilters: boolean;
   onSearchChange: (value: string) => void;
   onBatchChange: (value: string) => void;
   onStatusChange: (value: string) => void;
@@ -54,6 +55,7 @@ export default function FeeFilters({
   selectedSort,
   batches,
   months,
+  hasActiveFilters,
   onSearchChange,
   onBatchChange,
   onStatusChange,
@@ -63,13 +65,11 @@ export default function FeeFilters({
 }: FeeFiltersProps) {
   return (
     <FilterBar
-      searchGrow={false}
       search={
         <SearchBar
           value={searchTerm}
           onChange={onSearchChange}
-          placeholder="Search students or batches..."
-          collapsible
+          placeholder="Search fees..."
         />
       }
     >
@@ -151,6 +151,7 @@ export default function FeeFilters({
         type="button"
         variant="outline"
         onClick={onReset}
+        disabled={!hasActiveFilters}
         className="h-11 gap-2 rounded-xl"
       >
         <RotateCcw className="h-4 w-4" aria-hidden="true" />

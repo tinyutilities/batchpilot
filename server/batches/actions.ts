@@ -2,15 +2,37 @@
 
 import { prisma } from "@/server/db/prisma";
 import { getCurrentTeacher } from "@/server/auth/get-current-teacher";
+import { getAllBatches } from "@/server/batches/queries";
 import { batchFormSchema } from "@/server/batches/validators";
 import { batchStatusToPrisma, weekDayToPrisma } from "@/server/batches/mappers";
 import { mapStudent } from "@/server/students/mappers";
 import {
   getAttendancePercentagesByStudentIds,
   getPendingFeesByStudentIds,
+  getStudentBatchAssignments,
 } from "@/server/students/queries";
-import type { BatchFormData } from "@/types/batch";
+import type { Batch, BatchFormData } from "@/types/batch";
 import type { Student } from "@/types/student";
+
+// Client-callable wrappers for the SWR cache layer.
+export async function fetchBatches(): Promise<Batch[]> {
+  const teacher = await getCurrentTeacher();
+  if (!teacher) throw new Error("Not authenticated");
+  return getAllBatches(teacher.id);
+}
+
+export async function fetchBatchEnrollmentCounts(): Promise<Record<string, number>> {
+  const teacher = await getCurrentTeacher();
+  if (!teacher) throw new Error("Not authenticated");
+
+  const assignments = await getStudentBatchAssignments(teacher.id);
+  const counts: Record<string, number> = {};
+  for (const { batchId } of assignments) {
+    if (!batchId) continue;
+    counts[batchId] = (counts[batchId] ?? 0) + 1;
+  }
+  return counts;
+}
 
 export async function createBatch(data: BatchFormData): Promise<string> {
   const teacher = await getCurrentTeacher();
@@ -25,6 +47,7 @@ export async function createBatch(data: BatchFormData): Promise<string> {
       googleMeetLink: parsed.googleMeetLink || null,
       capacity: parsed.capacity,
       status: batchStatusToPrisma(parsed.status),
+      monthlyFee: parsed.monthlyFee ?? null,
       teacherId: teacher.id,
       schedule: {
         create: parsed.schedule.map((entry) => ({
@@ -63,6 +86,7 @@ export async function updateBatch(
         googleMeetLink: parsed.googleMeetLink || null,
         capacity: parsed.capacity,
         status: batchStatusToPrisma(parsed.status),
+        monthlyFee: parsed.monthlyFee ?? null,
         schedule: {
           create: parsed.schedule.map((entry) => ({
             day: weekDayToPrisma(entry.day),

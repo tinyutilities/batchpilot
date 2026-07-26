@@ -11,7 +11,7 @@ import { DashboardCard } from "@/components/dashboard/dashboard-card";
 const ACTIONS = [
   {
     label: "Add Student",
-    href: "/dashboard/students/new",
+    href: "/dashboard/students?addStudent=1",
     icon: UserPlus,
     className: "bg-blue-50 text-blue-600 dark:bg-blue-500/10 dark:text-blue-400",
   },

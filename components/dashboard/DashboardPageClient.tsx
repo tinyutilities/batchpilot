@@ -8,6 +8,7 @@ import TodaySchedule from "@/components/dashboard/TodaySchedule";
 import RecentActivity from "@/components/dashboard/RecentActivity";
 import QuickActions from "@/components/dashboard/QuickActions";
 import PerformanceChart from "@/components/shared/PerformanceChart";
+import { useDashboardStats } from "@/lib/hooks/use-dashboard-stats";
 import type { ActivityItem, DashboardStatsData, DashboardTrends, ScheduleEntry } from "@/types/dashboard";
 
 interface DashboardPageClientProps {
@@ -29,6 +30,8 @@ export default function DashboardPageClient({
   activity,
   trends,
 }: DashboardPageClientProps) {
+  const { stats: liveStats } = useDashboardStats(stats);
+
   return (
     <PageContainer>
       <PageHeader
@@ -40,7 +43,7 @@ export default function DashboardPageClient({
 
       <QuickActions />
 
-      <DashboardStats stats={stats} />
+      <DashboardStats stats={liveStats} />
 
       <RecentActivity activity={activity} />
 
