@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { useRouter, useSearchParams, usePathname } from "next/navigation";
-import { Plus } from "lucide-react";
+import { Download, Plus } from "lucide-react";
 import { PageContainer } from "@/components/layout/page-container";
 import { PageHeader } from "@/components/layout/page-header";
 import StudentStats from "@/components/students/StudentStats";
@@ -17,6 +17,8 @@ import { toast } from "sonner";
 import { deleteStudent } from "@/server/students/actions";
 import { useStudents } from "@/lib/hooks/use-students";
 import { computeStudentStats } from "@/lib/calculations/student";
+import { downloadCsv, toCsv } from "@/lib/csv";
+import { toDateKey } from "@/lib/utils";
 import type { Student } from "@/types/student";
 import type { Batch } from "@/types/batch";
 
@@ -42,6 +44,7 @@ export default function StudentsPageClient({
 
   const [studentPendingDelete, setStudentPendingDelete] =
     useState<Student | null>(null);
+  const [isExporting, setIsExporting] = useState(false);
 
   // Synchronous initializer so a deep link from the dashboard's "Add
   // Student" Quick Action opens the dialog on first render, with no flash.
@@ -137,19 +140,55 @@ export default function StudentsPageClient({
     mutateStudents([student, ...students]);
   }
 
+  // Exports exactly what's currently filtered/sorted on screen, not the
+  // whole roster — matches what the teacher is looking at.
+  function handleExport() {
+    setIsExporting(true);
+    try {
+      const csv = toCsv(filteredStudents, [
+        { header: "Name", value: (s) => s.fullName },
+        { header: "Phone", value: (s) => s.phone },
+        { header: "Email", value: (s) => s.email },
+        { header: "Batch", value: (s) => s.batchName },
+        { header: "Status", value: (s) => s.status },
+        { header: "Date Joined", value: (s) => s.createdAt.slice(0, 10) },
+        { header: "Notes", value: (s) => s.notes ?? "" },
+      ]);
+      downloadCsv(`batchpilot-students-${toDateKey(new Date())}.csv`, csv);
+      toast.success(
+        `Exported ${filteredStudents.length} student${filteredStudents.length === 1 ? "" : "s"}.`,
+      );
+    } catch {
+      toast.error("Couldn't generate the export. Please try again.");
+    } finally {
+      setIsExporting(false);
+    }
+  }
+
   return (
     <PageContainer>
       <PageHeader
         title="Students"
         description="Manage student records, attendance, marks and fee information."
         action={
-          <Button
-            className="h-11 gap-2 rounded-xl"
-            onClick={() => setAddStudentConfig({})}
-          >
-            <Plus className="h-4 w-4" aria-hidden="true" />
-            Add Student
-          </Button>
+          <div className="flex items-center gap-2">
+            <Button
+              variant="outline"
+              className="h-11 gap-2 rounded-xl"
+              disabled={isExporting || filteredStudents.length === 0}
+              onClick={handleExport}
+            >
+              <Download className="h-4 w-4" aria-hidden="true" />
+              {isExporting ? "Exporting…" : "Export CSV"}
+            </Button>
+            <Button
+              className="h-11 gap-2 rounded-xl"
+              onClick={() => setAddStudentConfig({})}
+            >
+              <Plus className="h-4 w-4" aria-hidden="true" />
+              Add Student
+            </Button>
+          </div>
         }
       />
 

@@ -3,10 +3,8 @@
 import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { Award, ClipboardList, Plus, TrendingDown } from "lucide-react";
+import { Award, ClipboardList, Download, TrendingDown } from "lucide-react";
 import { toast } from "sonner";
-import { PageContainer } from "@/components/layout/page-container";
-import { PageHeader } from "@/components/layout/page-header";
 import { Button } from "@/components/ui/button";
 import { DashboardCard } from "@/components/dashboard/dashboard-card";
 import { ModuleAlertBanner } from "@/components/dashboard/ModuleAlertBanner";
@@ -17,11 +15,15 @@ import TestDeleteDialog from "@/components/marks/TestDeleteDialog";
 import PerformanceChart from "@/components/shared/PerformanceChart";
 import { deleteTest } from "@/server/marks/actions";
 import {
+  calculateGrade,
+  calculatePercentage,
   computeMarksStats,
   computeLowestScorer,
   computeSubjectSummaries,
   computeTopScorer,
 } from "@/lib/calculations/marks";
+import { downloadCsv, toCsv } from "@/lib/csv";
+import { toDateKey } from "@/lib/utils";
 import type { MarkRecord, Test, TestResultSummary } from "@/types/marks";
 import type { Batch } from "@/types/batch";
 
@@ -47,6 +49,7 @@ export default function MarksPageClient({
   const [selectedSubject, setSelectedSubject] = useState("all");
   const [selectedDate, setSelectedDate] = useState("");
   const [testPendingDelete, setTestPendingDelete] = useState<Test | null>(null);
+  const [isExporting, setIsExporting] = useState(false);
 
   const nameMap = useMemo(
     () => new Map(Object.entries(studentNameById)),
@@ -105,6 +108,56 @@ export default function MarksPageClient({
     setSelectedDate("");
   }
 
+  // One row per student per test within the currently filtered tests —
+  // filteredSummaries is per-test, so this joins each surviving test back
+  // to its individual marks (allMarks) to get per-student rows.
+  function handleExportMarks() {
+    setIsExporting(true);
+    try {
+      const exportRows = filteredSummaries.flatMap((summary) => {
+        const marksForTest = allMarks.filter(
+          (mark) => mark.testId === summary.test.id,
+        );
+        return marksForTest.map((mark) => {
+          const isScored = mark.status === "present";
+          const percentage = isScored
+            ? calculatePercentage(mark.marksObtained, summary.test.maxMarks)
+            : null;
+          return {
+            studentName: nameMap.get(mark.studentId) ?? "Unknown",
+            batchName: summary.batchName,
+            testName: summary.test.name,
+            subject: summary.test.subject,
+            marksObtained: isScored ? mark.marksObtained : null,
+            maxMarks: summary.test.maxMarks,
+            percentage,
+            grade: isScored && percentage !== null
+              ? calculateGrade(percentage)
+              : "Absent",
+          };
+        });
+      });
+      const csv = toCsv(exportRows, [
+        { header: "Student", value: (r) => r.studentName },
+        { header: "Batch", value: (r) => r.batchName },
+        { header: "Test", value: (r) => r.testName },
+        { header: "Subject", value: (r) => r.subject },
+        { header: "Marks Obtained", value: (r) => r.marksObtained },
+        { header: "Max Marks", value: (r) => r.maxMarks },
+        { header: "Percentage", value: (r) => r.percentage },
+        { header: "Grade", value: (r) => r.grade },
+      ]);
+      downloadCsv(`batchpilot-marks-${toDateKey(new Date())}.csv`, csv);
+      toast.success(
+        `Exported ${exportRows.length} mark${exportRows.length === 1 ? "" : "s"}.`,
+      );
+    } catch {
+      toast.error("Couldn't generate the export. Please try again.");
+    } finally {
+      setIsExporting(false);
+    }
+  }
+
   function handleViewResults(summary: TestResultSummary) {
     router.push(`/dashboard/marks/${summary.test.id}`);
   }
@@ -125,20 +178,7 @@ export default function MarksPageClient({
   }
 
   return (
-    <PageContainer>
-      <PageHeader
-        title="Marks"
-        description="Record, edit and review student test performance."
-        action={
-          <Button asChild className="h-11 gap-2 rounded-xl">
-            <Link href="/dashboard/marks/new">
-              <Plus className="h-4 w-4" aria-hidden="true" />
-              Create Test
-            </Link>
-          </Button>
-        }
-      />
-
+    <>
       {testsWithoutMarks.length > 0 && (
         <ModuleAlertBanner
           title={`${testsWithoutMarks.length} test${testsWithoutMarks.length === 1 ? "" : "s"} without marks entered`}
@@ -154,7 +194,7 @@ export default function MarksPageClient({
         <DashboardCard title="Highest Scorer" description="Best result across all tests">
           {topScorer ? (
             <div className="flex items-center gap-3">
-              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-emerald-50 text-emerald-600 dark:bg-emerald-500/10 dark:text-emerald-400">
+              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-success-soft text-success">
                 <Award className="h-5 w-5" aria-hidden="true" />
               </div>
               <div className="flex flex-col gap-0.5">
@@ -174,7 +214,7 @@ export default function MarksPageClient({
         <DashboardCard title="Lowest Scorer" description="Needs the most support">
           {lowestScorer ? (
             <div className="flex items-center gap-3">
-              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-rose-50 text-rose-600 dark:bg-rose-500/10 dark:text-rose-400">
+              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-danger-soft text-destructive">
                 <TrendingDown className="h-5 w-5" aria-hidden="true" />
               </div>
               <div className="flex flex-col gap-0.5">
@@ -204,6 +244,20 @@ export default function MarksPageClient({
         </DashboardCard>
       </div>
 
+      <div className="flex justify-end">
+        <Button
+          type="button"
+          variant="outline"
+          size="sm"
+          className="gap-1.5 rounded-xl"
+          disabled={isExporting || filteredSummaries.length === 0}
+          onClick={handleExportMarks}
+        >
+          <Download className="h-3.5 w-3.5" aria-hidden="true" />
+          {isExporting ? "Exporting…" : "Export CSV"}
+        </Button>
+      </div>
+
       <MarksFilters
         searchTerm={searchTerm}
         selectedBatch={selectedBatch}
@@ -219,8 +273,8 @@ export default function MarksPageClient({
       />
 
       {allSummaries.length === 0 ? (
-        <div className="flex flex-col items-center justify-center gap-3 rounded-xl border border-slate-200 bg-white px-6 py-10 text-center dark:border-slate-800 dark:bg-slate-950">
-          <div className="flex h-12 w-12 items-center justify-center rounded-full bg-slate-100 dark:bg-slate-800">
+        <div className="flex flex-col items-center justify-center gap-3 rounded-xl border border-border bg-card px-6 py-10 text-center">
+          <div className="flex h-12 w-12 items-center justify-center rounded-full bg-muted">
             <ClipboardList
               className="h-6 w-6 text-muted-foreground"
               aria-hidden="true"
@@ -253,6 +307,6 @@ export default function MarksPageClient({
         }}
         onConfirm={handleConfirmDelete}
       />
-    </PageContainer>
+    </>
   );
 }

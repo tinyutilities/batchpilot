@@ -3,9 +3,8 @@
 import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { CalendarCheck, ClipboardList, Plus } from "lucide-react";
-import { PageContainer } from "@/components/layout/page-container";
-import { PageHeader } from "@/components/layout/page-header";
+import { CalendarCheck, ClipboardList, Download } from "lucide-react";
+import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { DashboardCard } from "@/components/dashboard/dashboard-card";
@@ -14,6 +13,7 @@ import AttendanceStats from "@/components/attendance/AttendanceStats";
 import AttendanceFilters from "@/components/attendance/AttendanceFilters";
 import AttendanceTable from "@/components/attendance/AttendanceTable";
 import { toDateKey } from "@/lib/utils";
+import { downloadCsv, toCsv } from "@/lib/csv";
 import type {
   AttendanceStatsData,
   BatchAttendanceSession,
@@ -39,6 +39,7 @@ interface AttendancePageClientProps {
   scheduledToday: Batch[];
   todayMarkedBatchIds: string[];
   batches: Batch[];
+  studentNameById: Record<string, string>;
 }
 
 export default function AttendancePageClient({
@@ -48,6 +49,7 @@ export default function AttendancePageClient({
   scheduledToday,
   todayMarkedBatchIds,
   batches,
+  studentNameById,
 }: AttendancePageClientProps) {
   const router = useRouter();
 
@@ -55,6 +57,7 @@ export default function AttendancePageClient({
   const [selectedBatch, setSelectedBatch] = useState("all");
   const [selectedStatus, setSelectedStatus] = useState("all");
   const [selectedDate, setSelectedDate] = useState("");
+  const [isExporting, setIsExporting] = useState(false);
 
   const today = todayKey();
   const markedTodaySet = useMemo(
@@ -83,6 +86,44 @@ export default function AttendancePageClient({
     });
   }, [allSessions, searchTerm, selectedBatch, selectedStatus, selectedDate]);
 
+  // Exports one row per student attendance record across the currently
+  // filtered sessions — matches what AttendanceTable shows below: the
+  // status filter keeps a whole session if any record in it matches, so
+  // (like the table) this exports every record in a matching session, not
+  // just the records that individually match the status filter.
+  function handleExportAttendance() {
+    setIsExporting(true);
+    try {
+      const exportRows = filteredSessions.flatMap((session) =>
+        session.records.map((record) => ({
+          studentName: studentNameById[record.studentId] ?? "Unknown",
+          batchName: session.batchName,
+          date: record.date,
+          status: record.status,
+          markedAt: record.markedAt,
+        })),
+      );
+      const csv = toCsv(exportRows, [
+        { header: "Student", value: (r) => r.studentName },
+        { header: "Batch", value: (r) => r.batchName },
+        { header: "Date", value: (r) => r.date },
+        { header: "Status", value: (r) => r.status },
+        {
+          header: "Marked At",
+          value: (r) => new Date(r.markedAt).toISOString(),
+        },
+      ]);
+      downloadCsv(`batchpilot-attendance-${toDateKey(new Date())}.csv`, csv);
+      toast.success(
+        `Exported ${exportRows.length} attendance record${exportRows.length === 1 ? "" : "s"}.`,
+      );
+    } catch {
+      toast.error("Couldn't generate the export. Please try again.");
+    } finally {
+      setIsExporting(false);
+    }
+  }
+
   function handleResetFilters() {
     setSearchTerm("");
     setSelectedBatch("all");
@@ -101,20 +142,7 @@ export default function AttendancePageClient({
   }
 
   return (
-    <PageContainer>
-      <PageHeader
-        title="Attendance"
-        description="Mark and review student attendance across all batches."
-        action={
-          <Button asChild className="h-11 gap-2 rounded-xl">
-            <Link href="/dashboard/attendance/mark">
-              <Plus className="h-4 w-4" aria-hidden="true" />
-              Mark Attendance
-            </Link>
-          </Button>
-        }
-      />
-
+    <>
       {unmarkedToday.length > 0 && (
         <ModuleAlertBanner
           title={`${unmarkedToday.length} batch${unmarkedToday.length === 1 ? "" : "es"} without attendance marked today`}
@@ -139,7 +167,7 @@ export default function AttendancePageClient({
             </p>
           </div>
         ) : (
-          <div className="flex flex-col divide-y divide-slate-100 dark:divide-slate-900">
+          <div className="flex flex-col divide-y divide-border">
             {scheduledToday.map((batch) => {
               const marked = markedTodaySet.has(batch.id);
               return (
@@ -157,11 +185,11 @@ export default function AttendancePageClient({
                   </div>
                   <div className="flex items-center gap-2">
                     {marked ? (
-                      <Badge className="rounded-full bg-emerald-50 text-emerald-600 hover:bg-emerald-50 dark:bg-emerald-500/10 dark:text-emerald-400">
+                      <Badge className="rounded-full bg-success-soft text-success hover:bg-success-soft">
                         Marked
                       </Badge>
                     ) : (
-                      <Badge className="rounded-full bg-slate-100 text-slate-600 hover:bg-slate-100 dark:bg-slate-800 dark:text-slate-400">
+                      <Badge className="rounded-full bg-muted text-muted-foreground hover:bg-muted">
                         Pending
                       </Badge>
                     )}
@@ -185,6 +213,20 @@ export default function AttendancePageClient({
         )}
       </DashboardCard>
 
+      <div className="flex justify-end">
+        <Button
+          type="button"
+          variant="outline"
+          size="sm"
+          className="gap-1.5 rounded-xl"
+          disabled={isExporting || filteredSessions.length === 0}
+          onClick={handleExportAttendance}
+        >
+          <Download className="h-3.5 w-3.5" aria-hidden="true" />
+          {isExporting ? "Exporting…" : "Export CSV"}
+        </Button>
+      </div>
+
       <AttendanceFilters
         searchTerm={searchTerm}
         selectedBatch={selectedBatch}
@@ -205,8 +247,8 @@ export default function AttendancePageClient({
       />
 
       {filteredSessions.length === 0 && allSessions.length === 0 ? (
-        <div className="flex flex-col items-center justify-center gap-3 rounded-xl border border-slate-200 bg-white px-6 py-10 text-center dark:border-slate-800 dark:bg-slate-950">
-          <div className="flex h-12 w-12 items-center justify-center rounded-full bg-slate-100 dark:bg-slate-800">
+        <div className="flex flex-col items-center justify-center gap-3 rounded-xl border border-border bg-card px-6 py-10 text-center">
+          <div className="flex h-12 w-12 items-center justify-center rounded-full bg-muted">
             <ClipboardList
               className="h-6 w-6 text-muted-foreground"
               aria-hidden="true"
@@ -230,6 +272,6 @@ export default function AttendancePageClient({
           onViewBatch={handleViewBatch}
         />
       )}
-    </PageContainer>
+    </>
   );
 }

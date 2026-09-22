@@ -4,7 +4,7 @@ import { startTransition, useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { mutate as globalMutate } from "swr";
-import { ReceiptText } from "lucide-react";
+import { Download, ReceiptText } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { DashboardCard } from "@/components/dashboard/dashboard-card";
@@ -30,13 +30,14 @@ import {
 import { useBatchFeeGrid, useFeeRows } from "@/lib/hooks/use-fees";
 import { useDebouncedValue } from "@/lib/hooks/use-debounced-value";
 import { DASHBOARD_STATS_KEY } from "@/lib/hooks/use-dashboard-stats";
+import { downloadCsv, toCsv } from "@/lib/csv";
 import {
   computeFeeStats,
   computeFeeStatus,
   computeMonthlyCollectionStats,
   monthLabel,
 } from "@/lib/calculations/fees";
-import { toMonthKey } from "@/lib/utils";
+import { toDateKey, toMonthKey } from "@/lib/utils";
 import type { FeeRecord, FeeTableRow, PaymentInput } from "@/types/fees";
 import type { Batch } from "@/types/batch";
 
@@ -84,6 +85,7 @@ export default function FeesPageClient({
   const [selectedSort, setSelectedSort] = useState(DEFAULT_SORT);
   const [paymentTarget, setPaymentTarget] = useState<FeeTableRow | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isExporting, setIsExporting] = useState(false);
 
   const debouncedSearchTerm = useDebouncedValue(searchTerm, 275);
   const hasActiveFilters =
@@ -229,6 +231,37 @@ export default function FeesPageClient({
     setSelectedStatus("all");
     setSelectedMonth("all");
     setSelectedSort(DEFAULT_SORT);
+  }
+
+  // Exports exactly what's currently filtered/sorted in the flat "All Fees"
+  // view. The per-batch month grid (below) isn't covered by this button —
+  // it's a different shape (student x month), not a row list, and adding a
+  // second export there is a separate feature, not a filter this one needs
+  // to respect.
+  function handleExportFees() {
+    setIsExporting(true);
+    try {
+      const csv = toCsv(filteredRows, [
+        { header: "Student", value: (r) => r.studentName },
+        { header: "Batch", value: (r) => r.batchName },
+        { header: "Month", value: (r) => monthLabel(r.fee.month) },
+        { header: "Expected", value: (r) => r.fee.amount },
+        { header: "Paid", value: (r) => r.fee.amountPaid },
+        {
+          header: "Outstanding",
+          value: (r) => r.fee.amount - r.fee.amountPaid,
+        },
+        { header: "Status", value: (r) => r.fee.status },
+      ]);
+      downloadCsv(`batchpilot-fees-${toDateKey(new Date())}.csv`, csv);
+      toast.success(
+        `Exported ${filteredRows.length} fee record${filteredRows.length === 1 ? "" : "s"}.`,
+      );
+    } catch {
+      toast.error("Couldn't generate the export. Please try again.");
+    } finally {
+      setIsExporting(false);
+    }
   }
 
   function handleViewStudent(row: FeeTableRow) {
@@ -405,6 +438,20 @@ export default function FeesPageClient({
 
       {gridBatchId === "all" ? (
         <>
+          <div className="flex justify-end">
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              className="gap-1.5 rounded-xl"
+              disabled={isExporting || filteredRows.length === 0}
+              onClick={handleExportFees}
+            >
+              <Download className="h-3.5 w-3.5" aria-hidden="true" />
+              {isExporting ? "Exporting…" : "Export CSV"}
+            </Button>
+          </div>
+
           <FeeFilters
             searchTerm={searchTerm}
             selectedBatch={selectedBatch}
