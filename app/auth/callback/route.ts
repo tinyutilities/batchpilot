@@ -1,4 +1,5 @@
 import { NextResponse, type NextRequest } from 'next/server'
+import { cookies } from 'next/headers'
 import { Prisma } from '@prisma/client'
 import { createClient } from '@/lib/supabase/server'
 import { provisionTeacher } from '@/server/auth/provision-teacher'
@@ -41,6 +42,17 @@ export async function GET(request: NextRequest) {
         gotrueError: error
           ? { name: error.name, status: error.status, code: error.code, message: error.message }
           : null,
+      })
+
+      // TEMP DIAGNOSTIC — names only, never values. Confirms whether
+      // exchangeCodeForSession actually queued session cookies into this
+      // request's cookie jar (via the adapter's setAll() in
+      // lib/supabase/server.ts) before we ever construct a response.
+      const cookieStore = await cookies()
+      const queuedCookieNames = cookieStore.getAll().map((c) => c.name)
+      console.log('[auth/callback] cookie jar after exchangeCodeForSession', {
+        cookieNames: queuedCookieNames,
+        hasSbAuthCookie: queuedCookieNames.some((n) => n.startsWith('sb-')),
       })
     } catch (err) {
       console.error('[auth/callback] THREW exchangeCodeForSession()')
@@ -112,9 +124,26 @@ export async function GET(request: NextRequest) {
           isLocalEnv,
           forwardedHost,
           finalUrl,
+          // Behind Cloudflare (DNS/CDN proxy) in front of Vercel, a
+          // forwardedHost that doesn't match the browser-facing domain
+          // would send the browser to a host that never received this
+          // response's Set-Cookie headers — different host, cookies don't
+          // apply. This makes that mismatch visible if it's happening.
+          finalUrlHost: new URL(finalUrl).host,
         })
 
         const response = NextResponse.redirect(finalUrl)
+
+        // TEMP DIAGNOSTIC — names only. Confirms the Set-Cookie headers are
+        // actually attached to THIS specific response object (not just
+        // queued somewhere Next.js might not merge onto a manually
+        // constructed NextResponse.redirect()).
+        const responseCookieNames = response.cookies.getAll().map((c) => c.name)
+        console.log('[auth/callback] cookies attached to redirect response', {
+          cookieNames: responseCookieNames,
+          hasSbAuthCookie: responseCookieNames.some((n) => n.startsWith('sb-')),
+        })
+
         console.log('[auth/callback] SUCCESS redirect (response constructed)')
         return response
       } catch (err) {

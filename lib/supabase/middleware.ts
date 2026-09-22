@@ -43,6 +43,7 @@ export async function updateSession(request: NextRequest) {
 
     const {
       data: { user },
+      error: getUserError,
     } = await supabase.auth.getUser();
 
     const publicRoutes = ["/", "/auth/login", "/auth/signup", "/auth"];
@@ -52,6 +53,23 @@ export async function updateSession(request: NextRequest) {
         request.nextUrl.pathname === route ||
         request.nextUrl.pathname.startsWith(`${route}/`)
     );
+
+    // TEMP DIAGNOSTIC — names only, never values. Shows exactly what
+    // arrived on this request and whether Supabase considers it a valid
+    // session, specifically for the request immediately following the
+    // /auth/callback redirect (e.g. the first /dashboard request).
+    if (!isPublicRoute) {
+      const incomingCookieNames = request.cookies.getAll().map((c) => c.name);
+      console.log("[middleware] session check", {
+        pathname: request.nextUrl.pathname,
+        cookieNames: incomingCookieNames,
+        hasSbAuthCookie: incomingCookieNames.some((n) => n.startsWith("sb-")),
+        hasUser: Boolean(user),
+        getUserError: getUserError
+          ? { name: getUserError.name, status: getUserError.status, message: getUserError.message }
+          : null,
+      });
+    }
 
     if (!user && !isPublicRoute) {
       const url = request.nextUrl.clone();
