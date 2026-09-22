@@ -2,7 +2,7 @@
 
 import type { Student } from "./student";
 
-export type BatchStatus = "active" | "inactive";
+export type BatchStatus = "active" | "inactive" | "archived";
 
 export type WeekDay = "mon" | "tue" | "wed" | "thu" | "fri" | "sat" | "sun";
 

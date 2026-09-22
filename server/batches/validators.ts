@@ -12,6 +12,6 @@ export const batchFormSchema = z.object({
   googleMeetLink: z.string().max(500).optional().default(""),
   schedule: z.array(scheduleEntrySchema),
   capacity: z.number().int().min(0).default(0),
-  status: z.enum(["active", "inactive"]),
+  status: z.enum(["active", "inactive", "archived"]),
   monthlyFee: z.number().positive().optional(),
 });

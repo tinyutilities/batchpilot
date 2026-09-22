@@ -5,6 +5,8 @@ import { useRouter, usePathname, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { format } from "date-fns";
 import {
+  Archive,
+  ArchiveRestore,
   CalendarClock,
   Copy,
   ExternalLink,
@@ -42,9 +44,11 @@ import {
 import BatchDeleteDialog from "@/components/batches/BatchDeleteDialog";
 import AddStudentDialog from "@/components/students/AddStudentDialog";
 import {
+  archiveBatch,
   assignStudentToBatch,
   deleteBatch,
   removeStudentFromBatch,
+  unarchiveBatch,
 } from "@/server/batches/actions";
 import { formatBatchSchedule } from "@/lib/calculations/batch";
 import type { BatchWithRoster } from "@/types/batch";
@@ -103,8 +107,8 @@ export default function BatchDetailPageClient({
           title="Batch not found"
           description="This batch may have been removed."
         />
-        <div className="flex flex-col items-center justify-center gap-3 rounded-2xl border border-slate-200 bg-white px-6 py-10 text-center dark:border-slate-800 dark:bg-slate-950">
-          <div className="flex h-12 w-12 items-center justify-center rounded-full bg-slate-100 dark:bg-slate-800">
+        <div className="flex flex-col items-center justify-center gap-3 rounded-2xl border border-border bg-card px-6 py-10 text-center">
+          <div className="flex h-12 w-12 items-center justify-center rounded-full bg-muted">
             <LayersIcon
               className="h-6 w-6 text-muted-foreground"
               aria-hidden="true"
@@ -173,6 +177,28 @@ export default function BatchDetailPageClient({
     setIsDeleteOpen(false);
   }
 
+  async function handleArchive() {
+    const ok = await archiveBatch(batchId);
+    if (ok) {
+      toast.success(
+        `${batchName} was archived. It's hidden from the active list but its history is kept.`,
+      );
+      router.refresh();
+    } else {
+      toast.error("Couldn't archive that batch. Please try again.");
+    }
+  }
+
+  async function handleUnarchive() {
+    const ok = await unarchiveBatch(batchId);
+    if (ok) {
+      toast.success(`${batchName} was restored to Active.`);
+      router.refresh();
+    } else {
+      toast.error("Couldn't unarchive that batch. Please try again.");
+    }
+  }
+
   return (
     <PageContainer className="gap-6">
       <PageHeader
@@ -186,6 +212,25 @@ export default function BatchDetailPageClient({
                 Edit Batch
               </Link>
             </Button>
+            {batch.status === "archived" ? (
+              <Button
+                variant="outline"
+                className="h-11 rounded-xl"
+                onClick={handleUnarchive}
+              >
+                <ArchiveRestore className="mr-2 h-4 w-4" />
+                Unarchive
+              </Button>
+            ) : (
+              <Button
+                variant="outline"
+                className="h-11 rounded-xl"
+                onClick={handleArchive}
+              >
+                <Archive className="mr-2 h-4 w-4" />
+                Archive
+              </Button>
+            )}
             <Button
               variant="destructive"
               className="h-11 rounded-xl"
@@ -204,11 +249,15 @@ export default function BatchDetailPageClient({
             <div className="flex flex-col gap-4">
               <div>
                 {batch.status === "active" ? (
-                  <Badge className="rounded-full bg-emerald-50 text-emerald-600 hover:bg-emerald-50 dark:bg-emerald-500/10 dark:text-emerald-400">
+                  <Badge className="rounded-full bg-success-soft text-success hover:bg-success-soft">
                     Active
                   </Badge>
+                ) : batch.status === "archived" ? (
+                  <Badge className="rounded-full bg-muted text-muted-foreground hover:bg-muted">
+                    Archived
+                  </Badge>
                 ) : (
-                  <Badge className="rounded-full bg-slate-100 text-slate-600 hover:bg-slate-100 dark:bg-slate-800 dark:text-slate-400">
+                  <Badge className="rounded-full bg-muted text-muted-foreground hover:bg-muted">
                     Inactive
                   </Badge>
                 )}
@@ -239,7 +288,7 @@ export default function BatchDetailPageClient({
                   </dt>
                   <dd className="flex items-center gap-2 font-medium text-foreground">
                     <CalendarClock
-                      className="h-4 w-4 shrink-0 text-slate-400"
+                      className="h-4 w-4 shrink-0 text-muted-foreground"
                       aria-hidden="true"
                     />
                     {formatBatchSchedule(batch.schedule)}
@@ -384,13 +433,13 @@ export default function BatchDetailPageClient({
                 Add New Student
               </Button>
               {capacityPercentage >= 100 && (
-                <p className="text-xs text-amber-600 dark:text-amber-400">
+                <p className="text-xs text-warning">
                   This batch is at or over capacity.
                 </p>
               )}
 
               {roster.length === 0 ? (
-                <div className="flex flex-col items-center justify-center gap-2 rounded-xl border border-dashed border-slate-200 px-6 py-10 text-center dark:border-slate-800">
+                <div className="flex flex-col items-center justify-center gap-2 rounded-xl border border-dashed border-border px-6 py-10 text-center">
                   <p className="text-sm font-medium text-foreground">
                     No students yet
                   </p>
@@ -439,11 +488,11 @@ export default function BatchDetailPageClient({
                         </TableCell>
                         <TableCell>
                           {student.status === "active" ? (
-                            <Badge className="rounded-full bg-emerald-50 text-emerald-600 hover:bg-emerald-50 dark:bg-emerald-500/10 dark:text-emerald-400">
+                            <Badge className="rounded-full bg-success-soft text-success hover:bg-success-soft">
                               Active
                             </Badge>
                           ) : (
-                            <Badge className="rounded-full bg-slate-100 text-slate-600 hover:bg-slate-100 dark:bg-slate-800 dark:text-slate-400">
+                            <Badge className="rounded-full bg-muted text-muted-foreground hover:bg-muted">
                               Inactive
                             </Badge>
                           )}
@@ -455,6 +504,7 @@ export default function BatchDetailPageClient({
                             size="icon-sm"
                             aria-label={`Remove ${student.fullName} from batch`}
                             onClick={() => handleRemoveStudent(student)}
+                            className="relative before:absolute before:-inset-2 before:content-['']"
                           >
                             <UserMinus
                               className="h-4 w-4 text-muted-foreground"

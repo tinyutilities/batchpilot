@@ -176,7 +176,7 @@ export default function BatchForm({
   }
 
   return (
-    <Card className="[--card-spacing:--spacing(5)] rounded-2xl border-slate-200 shadow-sm sm:[--card-spacing:--spacing(6)] dark:border-slate-800">
+    <Card className="[--card-spacing:--spacing(5)] rounded-2xl border-border shadow-raised sm:[--card-spacing:--spacing(6)]">
       <CardContent>
         <form
           onSubmit={handleSubmit}
@@ -228,6 +228,7 @@ export default function BatchForm({
                   <SelectContent>
                     <SelectItem value="active">Active</SelectItem>
                     <SelectItem value="inactive">Inactive</SelectItem>
+                    <SelectItem value="archived">Archived</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -280,7 +281,7 @@ export default function BatchForm({
                     return (
                       <div
                         key={day.id}
-                        className="flex flex-col gap-4 rounded-xl border border-slate-200 p-4 dark:border-slate-800"
+                        className="flex flex-col gap-4 rounded-xl border border-border p-4"
                       >
                         <p className="text-sm font-medium text-foreground">
                           {day.label}

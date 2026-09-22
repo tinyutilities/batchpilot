@@ -29,11 +29,13 @@ const WEEK_DAY_TO_PRISMA: Record<WeekDay, PrismaWeekDay> = {
 const BATCH_STATUS_TO_UI: Record<PrismaBatchStatus, BatchStatus> = {
   ACTIVE: "active",
   INACTIVE: "inactive",
+  ARCHIVED: "archived",
 };
 
 const BATCH_STATUS_TO_PRISMA: Record<BatchStatus, PrismaBatchStatus> = {
   active: "ACTIVE",
   inactive: "INACTIVE",
+  archived: "ARCHIVED",
 };
 
 export function weekDayToUI(day: PrismaWeekDay): WeekDay {

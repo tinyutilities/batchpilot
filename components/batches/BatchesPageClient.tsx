@@ -3,10 +3,8 @@
 import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { Layers, Plus } from "lucide-react";
+import { Layers } from "lucide-react";
 import { toast } from "sonner";
-import { PageContainer } from "@/components/layout/page-container";
-import { PageHeader } from "@/components/layout/page-header";
 import { Button } from "@/components/ui/button";
 import { ModuleAlertBanner } from "@/components/dashboard/ModuleAlertBanner";
 import BatchStats from "@/components/batches/BatchStats";
@@ -14,7 +12,7 @@ import BatchFilters from "@/components/batches/BatchFilters";
 import BatchCard from "@/components/batches/BatchCard";
 import BatchDeleteDialog from "@/components/batches/BatchDeleteDialog";
 import AddStudentDialog from "@/components/students/AddStudentDialog";
-import { deleteBatch } from "@/server/batches/actions";
+import { archiveBatch, deleteBatch, unarchiveBatch } from "@/server/batches/actions";
 import { useBatches } from "@/lib/hooks/use-batches";
 import { computeBatchStats } from "@/lib/calculations/batch";
 import type { Batch } from "@/types/batch";
@@ -175,21 +173,34 @@ export default function BatchesPageClient({
     setBatchPendingDelete(null);
   }
 
-  return (
-    <PageContainer>
-      <PageHeader
-        title="Batches"
-        description="Manage tuition batches, schedules and enrollment."
-        action={
-          <Button asChild className="h-11 gap-2 rounded-xl">
-            <Link href="/dashboard/batches/new">
-              <Plus className="h-4 w-4" aria-hidden="true" />
-              Add Batch
-            </Link>
-          </Button>
-        }
-      />
+  async function handleArchiveBatch(batch: Batch) {
+    const ok = await archiveBatch(batch.id);
+    if (ok) {
+      mutateBatches(
+        batches.map((b) => (b.id === batch.id ? { ...b, status: "archived" } : b)),
+      );
+      toast.success(
+        `${batch.name} was archived. It's hidden from the active list but its history is kept.`,
+      );
+    } else {
+      toast.error("Couldn't archive that batch. Please try again.");
+    }
+  }
 
+  async function handleUnarchiveBatch(batch: Batch) {
+    const ok = await unarchiveBatch(batch.id);
+    if (ok) {
+      mutateBatches(
+        batches.map((b) => (b.id === batch.id ? { ...b, status: "active" } : b)),
+      );
+      toast.success(`${batch.name} was restored to Active.`);
+    } else {
+      toast.error("Couldn't unarchive that batch. Please try again.");
+    }
+  }
+
+  return (
+    <>
       {emptyBatches.length > 0 && (
         <ModuleAlertBanner
           title={`${emptyBatches.length} empty batch${emptyBatches.length === 1 ? "" : "es"}`}
@@ -213,8 +224,8 @@ export default function BatchesPageClient({
       />
 
       {filteredBatches.length === 0 ? (
-        <div className="flex flex-col items-center justify-center gap-3 rounded-2xl border border-slate-200 bg-white px-6 py-10 text-center dark:border-slate-800 dark:bg-slate-950">
-          <div className="flex h-12 w-12 items-center justify-center rounded-full bg-slate-100 dark:bg-slate-800">
+        <div className="flex flex-col items-center justify-center gap-3 rounded-2xl border border-border bg-card px-6 py-10 text-center">
+          <div className="flex h-12 w-12 items-center justify-center rounded-full bg-muted">
             <Layers
               className="h-6 w-6 text-muted-foreground"
               aria-hidden="true"
@@ -254,6 +265,8 @@ export default function BatchesPageClient({
               onEdit={handleEditBatch}
               onDelete={handleDeleteBatch}
               onAddStudent={handleAddStudentToBatch}
+              onArchive={handleArchiveBatch}
+              onUnarchive={handleUnarchiveBatch}
             />
           ))}
         </div>
@@ -284,6 +297,6 @@ export default function BatchesPageClient({
         }}
         onCreated={handleStudentCreated}
       />
-    </PageContainer>
+    </>
   );
 }

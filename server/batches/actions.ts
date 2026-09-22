@@ -101,6 +101,43 @@ export async function updateBatch(
   return id;
 }
 
+// Archiving hides a batch from the active roster/schedule while keeping
+// every student, attendance, fee and marks record intact — unlike delete,
+// which is blocked entirely once a batch has students (see canDeleteBatch).
+// A teacher archives a batch when the course is over, rather than deleting
+// history they'll want to look back on.
+export async function archiveBatch(id: string): Promise<boolean> {
+  const teacher = await getCurrentTeacher();
+  if (!teacher) throw new Error("Not authenticated");
+
+  const existing = await prisma.batch.findFirst({
+    where: { id, teacherId: teacher.id },
+  });
+  if (!existing) return false;
+
+  await prisma.batch.update({
+    where: { id },
+    data: { status: "ARCHIVED" },
+  });
+  return true;
+}
+
+export async function unarchiveBatch(id: string): Promise<boolean> {
+  const teacher = await getCurrentTeacher();
+  if (!teacher) throw new Error("Not authenticated");
+
+  const existing = await prisma.batch.findFirst({
+    where: { id, teacherId: teacher.id },
+  });
+  if (!existing) return false;
+
+  await prisma.batch.update({
+    where: { id },
+    data: { status: "ACTIVE" },
+  });
+  return true;
+}
+
 export async function canDeleteBatch(
   teacherId: string,
   id: string,
