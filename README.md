@@ -8,7 +8,7 @@ BatchPilot is a dashboard for tuition teachers to manage batches, students, atte
 - React 19, TypeScript (strict)
 - Tailwind CSS v4 + [shadcn/ui](https://ui.shadcn.com)
 - [Supabase](https://supabase.com) Auth (Google OAuth) via `@supabase/ssr`
-- [Prisma](https://www.prisma.io) ORM (schema defined, not yet wired into any route — see "Project structure")
+- [Prisma](https://www.prisma.io) ORM, connected to a Postgres database (Supabase) — every dashboard route reads/writes through it via `server/`
 - Deployed to Cloudflare Workers via [`@opennextjs/cloudflare`](https://opennext.js.org/cloudflare)
 
 ## Getting started
@@ -19,7 +19,7 @@ cp .env.example .env.local   # fill in the values described below
 npm run dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000). The app currently runs entirely on an in-memory mock data layer (see below), so no database connection is required just to develop the UI.
+Open [http://localhost:3000](http://localhost:3000). The dashboard is Prisma/Postgres-backed, so `DATABASE_URL`/`DIRECT_URL` must point at a real database before dashboard pages will load — see "Environment variables" below.
 
 ## Environment variables
 
@@ -29,7 +29,7 @@ Copy `.env.example` to `.env.local` and fill in:
 |---|---|---|
 | `NEXT_PUBLIC_SUPABASE_URL` | Auth | Project origin, e.g. `https://<ref>.supabase.co` — not the `/rest/v1` endpoint |
 | `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Auth | Supabase anon/publishable key |
-| `DATABASE_URL` | Prisma | Pooled Postgres connection string. Not required to run the app today — nothing in `app/` imports Prisma yet |
+| `DATABASE_URL` | Prisma | Pooled Postgres connection string. Required — every dashboard page queries through it (`server/`) |
 | `DIRECT_URL` | Prisma migrations | Direct (non-pooled) Postgres connection |
 | `NEXT_PUBLIC_USE_DEMO_DATA` | Mock data | `"true"`/unset seeds every module with demo data; `"false"` starts empty, matching a first-time user. See `lib/config.ts` |
 
@@ -63,17 +63,18 @@ components/
   <domain>/             Feature components (students/, batches/, attendance/, fees/, marks/)
   dashboard/, layout/, shared/, branding/, pwa/, theme/   Cross-cutting UI
 lib/
-  mock/                 In-memory mock data layer — the app's actual data source today
-  hooks/                Shared client hooks
+  mock/                 In-memory mock data layer — superseded by server/ for app/dashboard, still used by app/admin
+  hooks/                Shared client hooks (SWR wrappers over server/ actions)
   supabase/             Supabase client/server/middleware helpers
-  prisma.ts             Prisma client singleton — not yet imported by any route
+  prisma.ts             Prisma client singleton, re-exported by server/db/prisma.ts
 types/                  Shared TypeScript types, one file per domain
-prisma/schema.prisma    Database schema — defined, not yet connected to the app
+server/                 Prisma-backed queries/actions/mappers/validators, one folder per domain — this is what app/ routes actually call
+prisma/schema.prisma    Database schema, connected and in use
 ```
 
-### The mock data layer
+### Data layer
 
-Every domain module (`lib/mock/student.ts`, `batch.ts`, `attendance.ts`, `fees.ts`, `marks.ts`, `teacher.ts`, plus the `dashboard.ts` aggregator) holds its data as plain mutable in-memory arrays/objects, seeded from `USE_DEMO_DATA` (`lib/config.ts`). Pages read and mutate these directly and call the exported CRUD/compute functions — there is no API layer or database round-trip yet. Prisma's schema (`prisma/schema.prisma`) models the same domains and is ready to be wired in, but doing so is a real migration, not a drop-in swap: every mock function currently returns synchronously.
+Dashboard pages (`app/dashboard/**`) call query functions in `server/<domain>/queries.ts`, which run Prisma queries against Postgres — this is the app's real data source for teachers, students, batches, attendance, fees and marks. `lib/mock/*` is an earlier in-memory layer that predates the Prisma migration; it's no longer used by `app/dashboard/**` but is still imported by the admin section (`app/admin/**`), which hasn't been migrated yet. `NEXT_PUBLIC_USE_DEMO_DATA` (`lib/config.ts`) only affects that remaining mock-backed admin section.
 
 ## Deployment prerequisites
 
