@@ -6,8 +6,6 @@ import Link from "next/link";
 import { mutate as globalMutate } from "swr";
 import { ReceiptText } from "lucide-react";
 import { toast } from "sonner";
-import { PageContainer } from "@/components/layout/page-container";
-import { PageHeader } from "@/components/layout/page-header";
 import { Button } from "@/components/ui/button";
 import { DashboardCard } from "@/components/dashboard/dashboard-card";
 import { ModuleAlertBanner } from "@/components/dashboard/ModuleAlertBanner";
@@ -60,10 +58,10 @@ function recentMonthOptions(): string[] {
 }
 
 function getRateColor(percentage: number) {
-  if (percentage >= 90) return "bg-emerald-500";
-  if (percentage >= 70) return "bg-blue-500";
-  if (percentage >= 40) return "bg-amber-500";
-  return "bg-red-500";
+  if (percentage >= 90) return "bg-success";
+  if (percentage >= 70) return "bg-secondary-foreground";
+  if (percentage >= 40) return "bg-warning";
+  return "bg-destructive";
 }
 
 interface FeesPageClientProps {
@@ -314,12 +312,7 @@ export default function FeesPageClient({
   }
 
   return (
-    <PageContainer>
-      <PageHeader
-        title="Fees"
-        description="Track fee payments, pending dues, and payment history."
-      />
-
+    <>
       {overdueFees.length > 0 && (
         <ModuleAlertBanner
           severity="critical"
@@ -349,7 +342,7 @@ export default function FeesPageClient({
                   %)
                 </span>
               </div>
-              <div className="h-2 w-full overflow-hidden rounded-full bg-slate-100 dark:bg-slate-800">
+              <div className="h-2 w-full overflow-hidden rounded-full bg-muted">
                 <div
                   className={cn(
                     "h-full rounded-full",
@@ -430,8 +423,8 @@ export default function FeesPageClient({
           />
 
           {allRows.length === 0 ? (
-            <div className="flex flex-col items-center justify-center gap-3 rounded-xl border border-slate-200 bg-white px-6 py-10 text-center dark:border-slate-800 dark:bg-slate-950">
-              <div className="flex h-12 w-12 items-center justify-center rounded-full bg-slate-100 dark:bg-slate-800">
+            <div className="flex flex-col items-center justify-center gap-3 rounded-xl border border-border bg-card px-6 py-10 text-center">
+              <div className="flex h-12 w-12 items-center justify-center rounded-full bg-muted">
                 <ReceiptText
                   className="h-6 w-6 text-muted-foreground"
                   aria-hidden="true"
@@ -475,6 +468,7 @@ export default function FeesPageClient({
             </div>
           )}
           <BatchMonthFeeTable
+            batchId={gridBatchId}
             rows={gridRows}
             month={gridMonth}
             fallbackExpectedFee={selectedGridBatch?.monthlyFee ?? DEFAULT_MONTHLY_FEE}
@@ -494,6 +488,6 @@ export default function FeesPageClient({
         }}
         onSubmit={handleSubmitPayment}
       />
-    </PageContainer>
+    </>
   );
 }

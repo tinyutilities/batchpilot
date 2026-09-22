@@ -35,19 +35,31 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import PaymentStatusBadge from "@/components/fees/PaymentStatusBadge";
-import { formatPaymentMethod } from "@/lib/calculations/fees";
+import { formatPaymentMethod, monthLabel } from "@/lib/calculations/fees";
 import {
   fetchPaymentsForStudent,
+  markAllPaidForBatchMonth,
   markFeePaidInFull,
   resetFeePayments,
 } from "@/server/fees/actions";
 import { DASHBOARD_STATS_KEY } from "@/lib/hooks/use-dashboard-stats";
 import type { BatchFeeGridRow, Payment } from "@/types/fees";
 
-const stickyHeadClass = "sticky top-0 z-10 bg-white dark:bg-slate-950";
+const stickyHeadClass = "sticky top-0 z-10 bg-card";
 
 interface BatchMonthFeeTableProps {
+  batchId: string;
   rows: BatchFeeGridRow[];
   month: string;
   // Shown as "Expected" for a student whose fee row hasn't been
@@ -73,7 +85,7 @@ function TableSkeleton() {
       {Array.from({ length: 5 }).map((_, index) => (
         <div
           key={index}
-          className="flex items-center gap-4 border-b border-slate-100 px-6 py-4 last:border-0 dark:border-slate-900"
+          className="flex items-center gap-4 border-b border-border px-6 py-4 last:border-0"
         >
           <Skeleton className="h-9 w-9 rounded-full" />
           <Skeleton className="h-4 w-32" />
@@ -88,6 +100,7 @@ function TableSkeleton() {
 }
 
 export default function BatchMonthFeeTable({
+  batchId,
   rows,
   month,
   fallbackExpectedFee,
@@ -102,6 +115,8 @@ export default function BatchMonthFeeTable({
   } | null>(null);
   const [historyPayments, setHistoryPayments] = useState<Payment[]>([]);
   const [isLoadingHistory, setIsLoadingHistory] = useState(false);
+  const [showMarkAllConfirm, setShowMarkAllConfirm] = useState(false);
+  const [isMarkingAll, setIsMarkingAll] = useState(false);
 
   async function handleMarkPaid(studentId: string, studentName: string) {
     setPendingStudentId(studentId);
@@ -141,9 +156,37 @@ export default function BatchMonthFeeTable({
     setIsLoadingHistory(false);
   }
 
+  async function handleMarkAllPaid() {
+    setIsMarkingAll(true);
+    try {
+      const { markedCount } = await markAllPaidForBatchMonth(batchId, month);
+      if (markedCount > 0) {
+        toast.success(
+          `Marked ${markedCount} student${markedCount === 1 ? "" : "s"} paid for ${monthLabel(month)}.`,
+        );
+        onChanged();
+        globalMutate(DASHBOARD_STATS_KEY);
+      } else {
+        toast.info("Nothing to mark — everyone is already settled.");
+      }
+    } catch {
+      toast.error(
+        "Couldn't mark everyone paid. Your existing records are unchanged — try again.",
+      );
+    } finally {
+      setIsMarkingAll(false);
+      setShowMarkAllConfirm(false);
+    }
+  }
+
+  const outstandingCount = rows.filter((row) => {
+    const status = row.cells.find((c) => c.month === month)?.status ?? "pending";
+    return status === "pending" || status === "partial" || status === "overdue";
+  }).length;
+
   if (isLoading) {
     return (
-      <div className="rounded-xl border border-slate-200 bg-white dark:border-slate-800 dark:bg-slate-950">
+      <div className="rounded-xl border border-border bg-card">
         <TableSkeleton />
       </div>
     );
@@ -151,8 +194,8 @@ export default function BatchMonthFeeTable({
 
   if (rows.length === 0) {
     return (
-      <div className="flex flex-col items-center justify-center gap-3 rounded-xl border border-slate-200 bg-white px-6 py-10 text-center dark:border-slate-800 dark:bg-slate-950">
-        <div className="flex h-12 w-12 items-center justify-center rounded-full bg-slate-100 dark:bg-slate-800">
+      <div className="flex flex-col items-center justify-center gap-3 rounded-xl border border-border bg-card px-6 py-10 text-center">
+        <div className="flex h-12 w-12 items-center justify-center rounded-full bg-muted">
           <Users className="h-6 w-6 text-muted-foreground" aria-hidden="true" />
         </div>
         <p className="text-sm font-medium text-foreground">
@@ -167,7 +210,27 @@ export default function BatchMonthFeeTable({
 
   return (
     <>
-      <div className="max-h-[65vh] overflow-auto rounded-xl border border-slate-200 bg-white dark:border-slate-800 dark:bg-slate-950">
+      <div className="flex items-center justify-between gap-3">
+        <p className="text-sm text-muted-foreground">
+          {outstandingCount > 0
+            ? `${outstandingCount} student${outstandingCount === 1 ? "" : "s"} outstanding for ${monthLabel(month)}`
+            : `Everyone is settled for ${monthLabel(month)}`}
+        </p>
+        {outstandingCount > 0 && (
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            className="gap-1.5 rounded-xl"
+            onClick={() => setShowMarkAllConfirm(true)}
+          >
+            <CheckCircle2 className="h-3.5 w-3.5" aria-hidden="true" />
+            Mark All Paid
+          </Button>
+        )}
+      </div>
+
+      <div className="max-h-[65vh] overflow-auto rounded-xl border border-border bg-card">
         <table className="w-full caption-bottom text-sm">
           <TableHeader>
             <TableRow>
@@ -265,6 +328,7 @@ export default function BatchMonthFeeTable({
                               size="icon-sm"
                               disabled={isBusy}
                               aria-label={`More actions for ${row.studentName}`}
+                              className="relative before:absolute before:-inset-2 before:content-['']"
                             >
                               <MoreHorizontal className="h-4 w-4" aria-hidden="true" />
                             </Button>
@@ -362,7 +426,7 @@ export default function BatchMonthFeeTable({
               {historyPayments.map((payment) => (
                 <div
                   key={payment.id}
-                  className="flex items-center justify-between border-b border-slate-100 pb-2 text-sm last:border-0 dark:border-slate-900"
+                  className="flex items-center justify-between border-b border-border pb-2 text-sm last:border-0"
                 >
                   <div className="flex flex-col">
                     <span className="font-medium text-foreground">
@@ -384,6 +448,27 @@ export default function BatchMonthFeeTable({
           )}
         </DialogContent>
       </Dialog>
+
+      <AlertDialog open={showMarkAllConfirm} onOpenChange={setShowMarkAllConfirm}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Mark everyone paid?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This records a full cash payment for {outstandingCount} student
+              {outstandingCount === 1 ? "" : "s"} for {monthLabel(month)}.
+              Students who already have a partial payment will only be
+              charged the remaining balance. This can&apos;t be undone in
+              bulk — you&apos;d need to reset each student individually.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={isMarkingAll}>Cancel</AlertDialogCancel>
+            <AlertDialogAction disabled={isMarkingAll} onClick={handleMarkAllPaid}>
+              {isMarkingAll ? "Marking…" : "Mark All Paid"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </>
   );
 }

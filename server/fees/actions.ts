@@ -169,6 +169,58 @@ export async function markFeePaidInFull(
   return getFeeById(teacher.id, fee.id);
 }
 
+// Bulk version of markFeePaidInFull for an entire batch/month at once (the
+// Fees page's "Mark All Paid" action). Reuses the same
+// getOrCreateFeeForMonth/recordPayment primitives per student rather than
+// duplicating the payment logic — the one thing it adds is skipping
+// "not_due" months, which the single-student flow never needs to check
+// because that button is already hidden for not-due cells in the UI; a
+// bulk action has no such per-row gate, so it must check explicitly.
+export async function markAllPaidForBatchMonth(
+  batchId: string,
+  monthKey: string,
+): Promise<{ markedCount: number; totalCount: number }> {
+  const teacher = await getCurrentTeacher();
+  if (!teacher) throw new Error("Not authenticated");
+
+  const batch = await prisma.batch.findFirst({
+    where: { id: batchId, teacherId: teacher.id },
+  });
+  if (!batch) throw new Error("Batch not found");
+
+  const students = await prisma.student.findMany({
+    where: { teacherId: teacher.id, batchId },
+    select: { id: true },
+  });
+
+  let markedCount = 0;
+  const results = await Promise.allSettled(
+    students.map(async (student) => {
+      const fee = await getOrCreateFeeForMonth(student.id, monthKey);
+      if (!fee || fee.status === "not_due" || fee.status === "paid") return;
+
+      const balance = fee.amount - fee.amountPaid;
+      if (balance <= 0) return;
+
+      await recordPayment(fee.id, {
+        amount: balance,
+        method: "cash",
+        date: toDateKey(new Date()),
+      });
+      markedCount += 1;
+    }),
+  );
+  const failed = results.filter((r) => r.status === "rejected");
+  if (failed.length > 0) {
+    console.error(
+      `[markAllPaidForBatchMonth] ${failed.length}/${students.length} payments failed`,
+      failed.map((r) => (r as PromiseRejectedResult).reason),
+    );
+  }
+
+  return { markedCount, totalCount: students.length };
+}
+
 // The first time a teacher opens a batch for a given month, materialize a
 // real Fee row (Pending, amount = batch.monthlyFee) for every enrolled
 // student instead of leaving it purely virtual — other parts of the app
