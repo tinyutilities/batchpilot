@@ -1,6 +1,8 @@
 "use client";
 
 import {
+  Archive,
+  ArchiveRestore,
   MoreHorizontal,
   Eye,
   Pencil,
@@ -9,6 +11,7 @@ import {
   Phone,
 } from "lucide-react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -29,6 +32,8 @@ interface StudentTableProps {
   onViewStudent?: (student: Student) => void;
   onEditStudent?: (student: Student) => void;
   onDeleteStudent?: (student: Student) => void;
+  onArchiveStudent?: (student: Student) => void;
+  onUnarchiveStudent?: (student: Student) => void;
   onAddStudent?: () => void;
 }
 
@@ -39,25 +44,25 @@ function getInitials(firstName: string, lastName: string) {
 function getAttendanceColor(percentage: number) {
   if (percentage >= 90) {
     return {
-      text: "text-emerald-600 dark:text-emerald-400",
-      bar: "bg-emerald-500",
+      text: "text-success",
+      bar: "bg-success",
     };
   }
   if (percentage >= 75) {
     return {
-      text: "text-blue-600 dark:text-blue-400",
-      bar: "bg-blue-500",
+      text: "text-secondary-foreground",
+      bar: "bg-secondary-foreground",
     };
   }
   if (percentage >= 50) {
     return {
-      text: "text-amber-600 dark:text-amber-400",
-      bar: "bg-amber-500",
+      text: "text-warning",
+      bar: "bg-warning",
     };
   }
   return {
-    text: "text-red-600 dark:text-red-400",
-    bar: "bg-red-500",
+    text: "text-destructive",
+    bar: "bg-destructive",
   };
 }
 
@@ -66,7 +71,7 @@ function AttendanceCell({ percentage }: { percentage: number }) {
   return (
     <div className="flex w-28 flex-col gap-1.5">
       <span className={cn("text-sm font-medium", text)}>{percentage}%</span>
-      <div className="h-1.5 w-full overflow-hidden rounded-full bg-slate-100 dark:bg-slate-800">
+      <div className="h-1.5 w-full overflow-hidden rounded-full bg-muted">
         <div
           className={cn("h-full rounded-full", bar)}
           style={{ width: `${Math.min(percentage, 100)}%` }}
@@ -79,13 +84,13 @@ function AttendanceCell({ percentage }: { percentage: number }) {
 function FeesBadge({ amount }: { amount: number }) {
   if (amount === 0) {
     return (
-      <Badge className="rounded-lg border-transparent bg-emerald-50 text-emerald-700 hover:bg-emerald-50 dark:bg-emerald-950 dark:text-emerald-400">
+      <Badge className="rounded-lg border-transparent bg-success-soft text-success hover:bg-success-soft">
         Paid
       </Badge>
     );
   }
   return (
-    <Badge className="rounded-lg border-transparent bg-red-50 text-red-700 hover:bg-red-50 dark:bg-red-950 dark:text-red-400">
+    <Badge className="rounded-lg border-transparent bg-danger-soft text-destructive hover:bg-danger-soft">
       ₹{amount.toLocaleString("en-IN")}
     </Badge>
   );
@@ -94,13 +99,20 @@ function FeesBadge({ amount }: { amount: number }) {
 function StatusBadge({ status }: { status: Student["status"] }) {
   if (status === "active") {
     return (
-      <Badge className="rounded-lg border-transparent bg-emerald-50 text-emerald-700 hover:bg-emerald-50 dark:bg-emerald-950 dark:text-emerald-400">
+      <Badge className="rounded-lg border-transparent bg-success-soft text-success hover:bg-success-soft">
         Active
       </Badge>
     );
   }
+  if (status === "archived") {
+    return (
+      <Badge className="rounded-lg border-transparent bg-muted text-muted-foreground hover:bg-muted">
+        Archived
+      </Badge>
+    );
+  }
   return (
-    <Badge className="rounded-lg border-transparent bg-slate-100 text-slate-600 hover:bg-slate-100 dark:bg-slate-800 dark:text-slate-400">
+    <Badge className="rounded-lg border-transparent bg-muted text-muted-foreground hover:bg-muted">
       Inactive
     </Badge>
   );
@@ -111,11 +123,15 @@ function ActionsMenu({
   onViewStudent,
   onEditStudent,
   onDeleteStudent,
+  onArchiveStudent,
+  onUnarchiveStudent,
 }: {
   student: Student;
   onViewStudent?: (student: Student) => void;
   onEditStudent?: (student: Student) => void;
   onDeleteStudent?: (student: Student) => void;
+  onArchiveStudent?: (student: Student) => void;
+  onUnarchiveStudent?: (student: Student) => void;
 }) {
   return (
     <DropdownMenu>
@@ -126,7 +142,7 @@ function ActionsMenu({
           size="icon-sm"
           aria-label={`Actions for ${student.fullName}`}
           onClick={(e) => e.stopPropagation()}
-          className="text-muted-foreground"
+          className="relative text-muted-foreground before:absolute before:-inset-2 before:content-['']"
         >
           <MoreHorizontal className="h-4 w-4" aria-hidden="true" />
         </Button>
@@ -140,9 +156,20 @@ function ActionsMenu({
           <Pencil className="mr-2 h-4 w-4" aria-hidden="true" />
           Edit
         </DropdownMenuItem>
+        {student.status === "archived" ? (
+          <DropdownMenuItem onClick={() => onUnarchiveStudent?.(student)}>
+            <ArchiveRestore className="mr-2 h-4 w-4" aria-hidden="true" />
+            Unarchive
+          </DropdownMenuItem>
+        ) : (
+          <DropdownMenuItem onClick={() => onArchiveStudent?.(student)}>
+            <Archive className="mr-2 h-4 w-4" aria-hidden="true" />
+            Archive
+          </DropdownMenuItem>
+        )}
         <DropdownMenuItem
           onClick={() => onDeleteStudent?.(student)}
-          className="text-red-600 focus:text-red-600 dark:text-red-400 dark:focus:text-red-400"
+          className="text-destructive focus:text-destructive"
         >
           <Trash2 className="mr-2 h-4 w-4" aria-hidden="true" />
           Delete
@@ -156,8 +183,8 @@ function TableSkeleton() {
   return (
     <div className="hidden md:block">
       <table className="w-full text-left text-sm">
-        <thead className="sticky top-0 z-10 bg-white dark:bg-slate-950">
-          <tr className="border-b border-slate-200 dark:border-slate-800">
+        <thead className="sticky top-0 z-10 bg-card">
+          <tr className="border-b border-border">
             {[
               "Student",
               "Batch",
@@ -180,7 +207,7 @@ function TableSkeleton() {
           {Array.from({ length: 6 }).map((_, index) => (
             <tr
               key={index}
-              className="border-b border-slate-100 last:border-0 dark:border-slate-900"
+              className="border-b border-border last:border-0"
             >
               <td className="px-6 py-4">
                 <div className="flex items-center gap-3">
@@ -223,7 +250,7 @@ function EmptyState({
 }) {
   return (
     <div className="flex flex-col items-center justify-center gap-3 px-6 py-10 text-center">
-      <div className="flex h-12 w-12 items-center justify-center rounded-full bg-slate-100 dark:bg-slate-800">
+      <div className="flex h-12 w-12 items-center justify-center rounded-full bg-muted">
         <Users2
           className="h-6 w-6 text-muted-foreground"
           aria-hidden="true"
@@ -273,11 +300,15 @@ export default function StudentTable({
   onViewStudent,
   onEditStudent,
   onDeleteStudent,
+  onArchiveStudent,
+  onUnarchiveStudent,
   onAddStudent,
 }: StudentTableProps) {
+  const router = useRouter();
+
   if (isLoading) {
     return (
-      <div className="rounded-xl border border-slate-200 bg-white dark:border-slate-800 dark:bg-slate-950">
+      <div className="rounded-xl border border-border bg-card">
         <TableSkeleton />
       </div>
     );
@@ -285,18 +316,18 @@ export default function StudentTable({
 
   if (students.length === 0) {
     return (
-      <div className="rounded-xl border border-slate-200 bg-white dark:border-slate-800 dark:bg-slate-950">
+      <div className="rounded-xl border border-border bg-card">
         <EmptyState hasAnyStudents={hasAnyStudents} onAddStudent={onAddStudent} />
       </div>
     );
   }
 
   return (
-    <div className="rounded-xl border border-slate-200 bg-white dark:border-slate-800 dark:bg-slate-950">
+    <div className="rounded-xl border border-border bg-card">
       <div className="hidden overflow-x-auto md:block">
         <table className="w-full text-left text-sm">
-          <thead className="sticky top-0 z-10 bg-white dark:bg-slate-950">
-            <tr className="border-b border-slate-200 dark:border-slate-800">
+          <thead className="sticky top-0 z-10 bg-card">
+            <tr className="border-b border-border">
               <th scope="col" className="px-6 py-3 font-medium text-muted-foreground">
                 Student
               </th>
@@ -329,7 +360,13 @@ export default function StudentTable({
                 onKeyDown={(e) => {
                   if (e.key === "Enter") onViewStudent?.(student);
                 }}
-                className="cursor-pointer border-b border-slate-100 transition-colors last:border-0 hover:bg-slate-50 focus:bg-slate-50 focus:outline-none dark:border-slate-900 dark:hover:bg-slate-900 dark:focus:bg-slate-900"
+                // Row isn't a real <Link> (it contains a nested dropdown
+                // trigger button), so warm the detail route on hover/focus
+                // instead — Next.js's documented prefetch pattern for
+                // custom clickable regions.
+                onMouseEnter={() => router.prefetch(`/dashboard/students/${student.id}`)}
+                onFocus={() => router.prefetch(`/dashboard/students/${student.id}`)}
+                className="cursor-pointer border-b border-border transition-colors last:border-0 hover:bg-muted/60 focus:bg-background focus:outline-none"
               >
                 <td className="px-6 py-4">
                   <div className="flex items-center gap-3">
@@ -374,6 +411,8 @@ export default function StudentTable({
                       onViewStudent={onViewStudent}
                       onEditStudent={onEditStudent}
                       onDeleteStudent={onDeleteStudent}
+                      onArchiveStudent={onArchiveStudent}
+                      onUnarchiveStudent={onUnarchiveStudent}
                     />
                   </div>
                 </td>
@@ -383,7 +422,7 @@ export default function StudentTable({
         </table>
       </div>
 
-      <div className="flex flex-col divide-y divide-slate-100 md:hidden dark:divide-slate-900">
+      <div className="flex flex-col divide-y divide-border md:hidden">
         {students.map((student) => (
           <div
             key={student.id}
@@ -393,7 +432,9 @@ export default function StudentTable({
             onKeyDown={(e) => {
               if (e.key === "Enter") onViewStudent?.(student);
             }}
-            className="flex flex-col gap-3 p-4 transition-colors hover:bg-slate-50 focus:bg-slate-50 focus:outline-none dark:hover:bg-slate-900 dark:focus:bg-slate-900"
+            onMouseEnter={() => router.prefetch(`/dashboard/students/${student.id}`)}
+            onFocus={() => router.prefetch(`/dashboard/students/${student.id}`)}
+            className="flex flex-col gap-3 p-4 transition-colors hover:bg-muted/60 focus:bg-background focus:outline-none"
           >
             <div className="flex items-start justify-between gap-3">
               <div className="flex items-center gap-3">
@@ -420,6 +461,8 @@ export default function StudentTable({
                 onViewStudent={onViewStudent}
                 onEditStudent={onEditStudent}
                 onDeleteStudent={onDeleteStudent}
+                onArchiveStudent={onArchiveStudent}
+                onUnarchiveStudent={onUnarchiveStudent}
               />
             </div>
 

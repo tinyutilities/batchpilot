@@ -14,7 +14,7 @@ import AddStudentDialog, {
 } from "@/components/students/AddStudentDialog";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
-import { deleteStudent } from "@/server/students/actions";
+import { archiveStudent, deleteStudent, unarchiveStudent } from "@/server/students/actions";
 import { useStudents } from "@/lib/hooks/use-students";
 import { computeStudentStats } from "@/lib/calculations/student";
 import { downloadCsv, toCsv } from "@/lib/csv";
@@ -140,6 +140,32 @@ export default function StudentsPageClient({
     mutateStudents([student, ...students]);
   }
 
+  async function handleArchiveStudent(student: Student) {
+    const ok = await archiveStudent(student.id);
+    if (ok) {
+      mutateStudents(
+        students.map((s) => (s.id === student.id ? { ...s, status: "archived" } : s)),
+      );
+      toast.success(
+        `${student.fullName} was archived. Their history is kept, and they're hidden from the active list.`,
+      );
+    } else {
+      toast.error("Couldn't archive that student. Please try again.");
+    }
+  }
+
+  async function handleUnarchiveStudent(student: Student) {
+    const ok = await unarchiveStudent(student.id);
+    if (ok) {
+      mutateStudents(
+        students.map((s) => (s.id === student.id ? { ...s, status: "active" } : s)),
+      );
+      toast.success(`${student.fullName} was restored to Active.`);
+    } else {
+      toast.error("Couldn't unarchive that student. Please try again.");
+    }
+  }
+
   // Exports exactly what's currently filtered/sorted on screen, not the
   // whole roster — matches what the teacher is looking at.
   function handleExport() {
@@ -214,6 +240,8 @@ export default function StudentsPageClient({
         onViewStudent={handleViewStudent}
         onEditStudent={handleEditStudent}
         onDeleteStudent={handleDeleteStudent}
+        onArchiveStudent={handleArchiveStudent}
+        onUnarchiveStudent={handleUnarchiveStudent}
         onAddStudent={() => setAddStudentConfig({})}
       />
 

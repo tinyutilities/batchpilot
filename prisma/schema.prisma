@@ -22,6 +22,7 @@ enum BatchStatus {
 enum StudentStatus {
   ACTIVE
   INACTIVE
+  ARCHIVED
 }
 
 enum Gender {

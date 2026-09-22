@@ -1,6 +1,6 @@
 // types/student.ts
 
-export type StudentStatus = "active" | "inactive";
+export type StudentStatus = "active" | "inactive" | "archived";
 
 export type Gender = "male" | "female" | "other";
 

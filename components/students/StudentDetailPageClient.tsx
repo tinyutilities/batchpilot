@@ -4,7 +4,15 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { format } from "date-fns";
-import { CalendarCheck, Pencil, Trash2, UserX, Wallet } from "lucide-react";
+import {
+  Archive,
+  ArchiveRestore,
+  CalendarCheck,
+  Pencil,
+  Trash2,
+  UserX,
+  Wallet,
+} from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -20,7 +28,7 @@ import PaymentStatusBadge from "@/components/fees/PaymentStatusBadge";
 import PaymentDialog from "@/components/fees/PaymentDialog";
 import GradeBadge from "@/components/marks/GradeBadge";
 import PerformanceChart from "@/components/shared/PerformanceChart";
-import { deleteStudent } from "@/server/students/actions";
+import { archiveStudent, deleteStudent, unarchiveStudent } from "@/server/students/actions";
 import { getOrCreateFeeForMonth, recordPayment } from "@/server/fees/actions";
 import { formatPaymentMethod, monthLabel } from "@/lib/calculations/fees";
 import type { AttendanceRecord, StudentAttendanceSummary } from "@/types/attendance";
@@ -87,6 +95,30 @@ export default function StudentDetailPageClient({
     router.push("/dashboard/students");
   }
 
+  async function handleArchive() {
+    if (!student) return;
+    const ok = await archiveStudent(student.id);
+    if (ok) {
+      toast.success(
+        `${student.fullName} was archived. Their history is kept, and they're hidden from the active list.`,
+      );
+      router.refresh();
+    } else {
+      toast.error("Couldn't archive that student. Please try again.");
+    }
+  }
+
+  async function handleUnarchive() {
+    if (!student) return;
+    const ok = await unarchiveStudent(student.id);
+    if (ok) {
+      toast.success(`${student.fullName} was restored to Active.`);
+      router.refresh();
+    } else {
+      toast.error("Couldn't unarchive that student. Please try again.");
+    }
+  }
+
   async function handleOpenPayment() {
     const fee = await getOrCreateFeeForMonth(studentId);
     if (!fee) {
@@ -121,6 +153,25 @@ export default function StudentDetailPageClient({
                 Edit Student
               </Link>
             </Button>
+            {student.status === "archived" ? (
+              <Button
+                variant="outline"
+                className="h-11 rounded-xl"
+                onClick={handleUnarchive}
+              >
+                <ArchiveRestore className="mr-2 h-4 w-4" />
+                Unarchive
+              </Button>
+            ) : (
+              <Button
+                variant="outline"
+                className="h-11 rounded-xl"
+                onClick={handleArchive}
+              >
+                <Archive className="mr-2 h-4 w-4" />
+                Archive
+              </Button>
+            )}
             <Button
               variant="destructive"
               className="h-11 rounded-xl"
@@ -167,6 +218,10 @@ export default function StudentDetailPageClient({
                   {student.status === "active" ? (
                     <Badge className="rounded-full bg-success-soft text-success hover:bg-success-soft">
                       Active
+                    </Badge>
+                  ) : student.status === "archived" ? (
+                    <Badge className="rounded-full bg-muted text-muted-foreground hover:bg-muted">
+                      Archived
                     </Badge>
                   ) : (
                     <Badge className="rounded-full bg-muted text-muted-foreground hover:bg-muted">

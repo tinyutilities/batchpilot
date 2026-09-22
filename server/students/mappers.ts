@@ -20,11 +20,13 @@ const GENDER_TO_PRISMA: Record<Gender, PrismaGender> = {
 const STATUS_TO_UI: Record<PrismaStudentStatus, StudentStatus> = {
   ACTIVE: "active",
   INACTIVE: "inactive",
+  ARCHIVED: "archived",
 };
 
 const STATUS_TO_PRISMA: Record<StudentStatus, PrismaStudentStatus> = {
   active: "ACTIVE",
   inactive: "INACTIVE",
+  archived: "ARCHIVED",
 };
 
 export function genderToUI(gender: PrismaGender): Gender {

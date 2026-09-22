@@ -99,6 +99,41 @@ export async function updateStudent(
   return id;
 }
 
+// Archiving hides a student from the active roster while keeping their
+// attendance/fee/marks history intact — unlike delete, which removes the
+// row (and, via cascade, that history) entirely.
+export async function archiveStudent(id: string): Promise<boolean> {
+  const teacher = await getCurrentTeacher();
+  if (!teacher) throw new Error("Not authenticated");
+
+  const existing = await prisma.student.findFirst({
+    where: { id, teacherId: teacher.id },
+  });
+  if (!existing) return false;
+
+  await prisma.student.update({
+    where: { id },
+    data: { status: "ARCHIVED" },
+  });
+  return true;
+}
+
+export async function unarchiveStudent(id: string): Promise<boolean> {
+  const teacher = await getCurrentTeacher();
+  if (!teacher) throw new Error("Not authenticated");
+
+  const existing = await prisma.student.findFirst({
+    where: { id, teacherId: teacher.id },
+  });
+  if (!existing) return false;
+
+  await prisma.student.update({
+    where: { id },
+    data: { status: "ACTIVE" },
+  });
+  return true;
+}
+
 export async function deleteStudent(id: string): Promise<boolean> {
   const teacher = await getCurrentTeacher();
   if (!teacher) throw new Error("Not authenticated");
