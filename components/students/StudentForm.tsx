@@ -50,6 +50,7 @@ const emptyFormData: StudentFormData = {
   batchId: "",
   school: "",
   status: "active",
+  notes: "",
 };
 
 const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -142,7 +143,7 @@ export default function StudentForm({
   }
 
   return (
-    <Card className="[--card-spacing:--spacing(5)] rounded-2xl border-slate-200 shadow-sm sm:[--card-spacing:--spacing(6)] dark:border-slate-800">
+    <Card className="[--card-spacing:--spacing(5)] rounded-2xl border-border shadow-raised sm:[--card-spacing:--spacing(6)]">
       <CardContent>
         <form
           onSubmit={handleSubmit}
@@ -413,6 +414,23 @@ export default function StudentForm({
                         </SelectContent>
                       </Select>
                     </div>
+                  </div>
+                </FormSection>
+
+                <FormSection
+                  title="Notes"
+                  description="Optional — private, visible only to you."
+                >
+                  <div className="flex flex-col gap-2">
+                    <Label htmlFor="notes">Notes</Label>
+                    <Textarea
+                      id="notes"
+                      placeholder="e.g. learning preferences, reminders for next session…"
+                      value={formData.notes}
+                      onChange={(e) => updateField("notes", e.target.value)}
+                      rows={3}
+                      className="rounded-xl"
+                    />
                   </div>
                 </FormSection>
               </div>

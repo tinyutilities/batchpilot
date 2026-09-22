@@ -66,6 +66,7 @@ export function mapStudent(row: PrismaStudent, extras: StudentExtras): Student {
     batchName: extras.batchName,
     school: row.school ?? "",
     status: studentStatusToUI(row.status),
+    notes: row.notes ?? "",
     attendancePercentage: extras.attendancePercentage,
     pendingFees: extras.pendingFees,
     avatar: row.avatar ?? undefined,

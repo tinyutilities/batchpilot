@@ -20,6 +20,10 @@ export interface Student {
   batchName: string;
   school: string;
   status: StudentStatus;
+  // Teacher-only — never shown to students/guardians. Optional so the
+  // legacy mock data layer (lib/mock/*, still used by app/admin) doesn't
+  // need updating for every literal it defines.
+  notes?: string;
   attendancePercentage: number;
   pendingFees: number;
   avatar?: string;
@@ -66,6 +70,7 @@ export interface StudentFormData {
   batchId: string;
   school: string;
   status: StudentStatus;
+  notes: string;
 }
 
 export interface StudentTableColumn {

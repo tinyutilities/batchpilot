@@ -34,8 +34,8 @@ export default function EditStudentFormClient({
           title="Edit Student"
           description="Update a student's details."
         />
-        <div className="flex flex-col items-center justify-center gap-3 rounded-2xl border border-slate-200 bg-white px-6 py-10 text-center dark:border-slate-800 dark:bg-slate-950">
-          <div className="flex h-12 w-12 items-center justify-center rounded-full bg-slate-100 dark:bg-slate-800">
+        <div className="flex flex-col items-center justify-center gap-3 rounded-2xl border border-border bg-card px-6 py-10 text-center">
+          <div className="flex h-12 w-12 items-center justify-center rounded-full bg-muted">
             <UserX
               className="h-6 w-6 text-muted-foreground"
               aria-hidden="true"
@@ -69,6 +69,7 @@ export default function EditStudentFormClient({
     batchId: student.batchId,
     school: student.school,
     status: student.status,
+    notes: student.notes,
   };
 
   async function handleUpdate(data: StudentFormData) {

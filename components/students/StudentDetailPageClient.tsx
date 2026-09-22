@@ -58,8 +58,8 @@ export default function StudentDetailPageClient({
           title="Student not found"
           description="This student may have been removed."
         />
-        <div className="flex flex-col items-center justify-center gap-3 rounded-2xl border border-slate-200 bg-white px-6 py-10 text-center dark:border-slate-800 dark:bg-slate-950">
-          <div className="flex h-12 w-12 items-center justify-center rounded-full bg-slate-100 dark:bg-slate-800">
+        <div className="flex flex-col items-center justify-center gap-3 rounded-2xl border border-border bg-card px-6 py-10 text-center">
+          <div className="flex h-12 w-12 items-center justify-center rounded-full bg-muted">
             <UserX
               className="h-6 w-6 text-muted-foreground"
               aria-hidden="true"
@@ -165,11 +165,11 @@ export default function StudentDetailPageClient({
                 </dt>
                 <dd>
                   {student.status === "active" ? (
-                    <Badge className="rounded-full bg-emerald-50 text-emerald-600 hover:bg-emerald-50 dark:bg-emerald-500/10 dark:text-emerald-400">
+                    <Badge className="rounded-full bg-success-soft text-success hover:bg-success-soft">
                       Active
                     </Badge>
                   ) : (
-                    <Badge className="rounded-full bg-slate-100 text-slate-600 hover:bg-slate-100 dark:bg-slate-800 dark:text-slate-400">
+                    <Badge className="rounded-full bg-muted text-muted-foreground hover:bg-muted">
                       Inactive
                     </Badge>
                   )}
@@ -222,6 +222,17 @@ export default function StudentDetailPageClient({
             </dl>
           </DashboardCard>
 
+          {student.notes && (
+            <DashboardCard
+              title="Notes"
+              description="Private — only visible to you"
+            >
+              <p className="whitespace-pre-wrap text-sm text-foreground">
+                {student.notes}
+              </p>
+            </DashboardCard>
+          )}
+
           <DashboardCard
             title="Attendance History"
             description={`${attendanceSummary.totalRecords} recorded session${
@@ -243,7 +254,7 @@ export default function StudentDetailPageClient({
                   No attendance has been recorded for this student yet.
                 </p>
               ) : (
-                <div className="flex flex-col divide-y divide-slate-100 dark:divide-slate-900">
+                <div className="flex flex-col divide-y divide-border">
                   {attendanceRecords.slice(0, 6).map((record) => (
                     <div
                       key={record.id}
@@ -299,7 +310,7 @@ export default function StudentDetailPageClient({
                     No fees have been billed for this student yet.
                   </p>
                 ) : (
-                  <div className="flex flex-col divide-y divide-slate-100 dark:divide-slate-900">
+                  <div className="flex flex-col divide-y divide-border">
                     {feeSummary.fees.map((fee) => (
                       <div
                         key={fee.id}
@@ -335,7 +346,7 @@ export default function StudentDetailPageClient({
                     No payments have been recorded for this student yet.
                   </p>
                 ) : (
-                  <div className="flex flex-col divide-y divide-slate-100 dark:divide-slate-900">
+                  <div className="flex flex-col divide-y divide-border">
                     {feeSummary.payments.slice(0, 5).map((payment) => (
                       <div
                         key={payment.id}
@@ -398,7 +409,7 @@ export default function StudentDetailPageClient({
                     No marks have been recorded for this student yet.
                   </p>
                 ) : (
-                  <div className="flex flex-col divide-y divide-slate-100 dark:divide-slate-900">
+                  <div className="flex flex-col divide-y divide-border">
                     {marksSummary.records.slice(0, 6).map((record) => (
                       <div
                         key={record.id}

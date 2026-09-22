@@ -13,4 +13,5 @@ export const studentFormSchema = z.object({
   batchId: z.string().min(1, "Batch is required."),
   school: z.string().max(200).optional().default(""),
   status: z.enum(["active", "inactive"]),
+  notes: z.string().max(2000).optional().default(""),
 });
