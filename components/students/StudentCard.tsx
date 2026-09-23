@@ -18,7 +18,7 @@ export default function StudentCard({ student }: StudentCardProps) {
       <div className="flex flex-col gap-5">
         <div className="flex items-center gap-3">
           <Avatar className="h-14 w-14">
-            <AvatarFallback className="bg-indigo-100 text-base font-medium text-indigo-600 dark:bg-indigo-500/10 dark:text-indigo-400">
+            <AvatarFallback className="bg-primary-soft text-base font-medium text-primary">
               {getInitials(student.firstName, student.lastName)}
             </AvatarFallback>
           </Avatar>
@@ -38,42 +38,42 @@ export default function StudentCard({ student }: StudentCardProps) {
 
         <div className="flex flex-col gap-3 text-sm">
           <div className="flex items-center gap-2 text-muted-foreground">
-            <User className="h-4 w-4 shrink-0 text-slate-400" />
+            <User className="h-4 w-4 shrink-0 text-muted-foreground" />
             <span className="text-foreground">{student.batchName}</span>
           </div>
           {student.school && (
             <div className="flex items-center gap-2 text-muted-foreground">
-              <School className="h-4 w-4 shrink-0 text-slate-400" />
+              <School className="h-4 w-4 shrink-0 text-muted-foreground" />
               {student.school}
             </div>
           )}
           {student.guardianName && (
             <div className="flex items-center gap-2 text-muted-foreground">
-              <User className="h-4 w-4 shrink-0 text-slate-400" />
+              <User className="h-4 w-4 shrink-0 text-muted-foreground" />
               Guardian: {student.guardianName}
             </div>
           )}
           {student.guardianPhone && (
             <div className="flex items-center gap-2 text-muted-foreground">
-              <Phone className="h-4 w-4 shrink-0 text-slate-400" />
+              <Phone className="h-4 w-4 shrink-0 text-muted-foreground" />
               {student.guardianPhone}
             </div>
           )}
           {student.phone && (
             <div className="flex items-center gap-2 text-muted-foreground">
-              <Phone className="h-4 w-4 shrink-0 text-slate-400" />
+              <Phone className="h-4 w-4 shrink-0 text-muted-foreground" />
               {student.phone}
             </div>
           )}
           {student.email && (
             <div className="flex items-center gap-2 text-muted-foreground">
-              <Mail className="h-4 w-4 shrink-0 text-slate-400" />
+              <Mail className="h-4 w-4 shrink-0 text-muted-foreground" />
               {student.email}
             </div>
           )}
           {student.address && (
             <div className="flex items-start gap-2 text-muted-foreground">
-              <MapPin className="mt-0.5 h-4 w-4 shrink-0 text-slate-400" />
+              <MapPin className="mt-0.5 h-4 w-4 shrink-0 text-muted-foreground" />
               {student.address}
             </div>
           )}

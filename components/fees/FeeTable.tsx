@@ -1,5 +1,6 @@
 "use client";
 
+import { useRouter } from "next/navigation";
 import { format } from "date-fns";
 import { ReceiptText, Wallet } from "lucide-react";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
@@ -18,7 +19,7 @@ import { cn } from "@/lib/utils";
 import type { FeeTableRow } from "@/types/fees";
 
 const stickyHeadClass =
-  "sticky top-0 z-10 bg-white dark:bg-slate-950";
+  "sticky top-0 z-10 bg-card";
 
 interface FeeTableProps {
   rows: FeeTableRow[];
@@ -43,7 +44,7 @@ function TableSkeleton() {
       {Array.from({ length: 6 }).map((_, index) => (
         <div
           key={index}
-          className="flex items-center gap-4 border-b border-slate-100 px-6 py-4 last:border-0 dark:border-slate-900"
+          className="flex items-center gap-4 border-b border-border px-6 py-4 last:border-0"
         >
           <Skeleton className="h-9 w-9 rounded-full" />
           <Skeleton className="h-4 w-32" />
@@ -59,7 +60,7 @@ function TableSkeleton() {
 function EmptyState() {
   return (
     <div className="flex flex-col items-center justify-center gap-3 px-6 py-10 text-center">
-      <div className="flex h-12 w-12 items-center justify-center rounded-full bg-slate-100 dark:bg-slate-800">
+      <div className="flex h-12 w-12 items-center justify-center rounded-full bg-muted">
         <ReceiptText
           className="h-6 w-6 text-muted-foreground"
           aria-hidden="true"
@@ -82,9 +83,11 @@ export default function FeeTable({
   onViewBatch,
   onRecordPayment,
 }: FeeTableProps) {
+  const router = useRouter();
+
   if (isLoading) {
     return (
-      <div className="rounded-xl border border-slate-200 bg-white dark:border-slate-800 dark:bg-slate-950">
+      <div className="rounded-xl border border-border bg-card">
         <TableSkeleton />
       </div>
     );
@@ -92,15 +95,15 @@ export default function FeeTable({
 
   if (rows.length === 0) {
     return (
-      <div className="rounded-xl border border-slate-200 bg-white dark:border-slate-800 dark:bg-slate-950">
+      <div className="rounded-xl border border-border bg-card">
         <EmptyState />
       </div>
     );
   }
 
   return (
-    <div className="max-h-[65vh] overflow-auto rounded-xl border border-slate-200 bg-white dark:border-slate-800 dark:bg-slate-950">
-      <table className="w-full caption-bottom text-sm">
+    <div className="max-h-[65vh] overflow-auto rounded-xl border border-border bg-card">
+      <table className="hidden w-full caption-bottom text-sm md:table">
         <TableHeader>
           <TableRow>
             <TableHead className={stickyHeadClass}>Student</TableHead>
@@ -126,6 +129,8 @@ export default function FeeTable({
                   <button
                     type="button"
                     onClick={() => onViewStudent(row)}
+                    onMouseEnter={() => router.prefetch(`/dashboard/students/${row.studentId}`)}
+                    onFocus={() => router.prefetch(`/dashboard/students/${row.studentId}`)}
                     className="flex items-center gap-3 text-left hover:underline"
                   >
                     <Avatar className="h-9 w-9">
@@ -142,6 +147,8 @@ export default function FeeTable({
                   <button
                     type="button"
                     onClick={() => onViewBatch(row)}
+                    onMouseEnter={() => router.prefetch(`/dashboard/batches/${row.fee.batchId}`)}
+                    onFocus={() => router.prefetch(`/dashboard/batches/${row.fee.batchId}`)}
                     className="text-foreground hover:underline"
                   >
                     {row.batchName}
@@ -183,6 +190,86 @@ export default function FeeTable({
           })}
         </TableBody>
       </table>
+
+      <div className="flex flex-col divide-y divide-border md:hidden">
+        {rows.map((row) => {
+          const balance = row.fee.amount - row.fee.amountPaid;
+
+          return (
+            <div key={row.fee.id} className="flex flex-col gap-3 p-4">
+              <div className="flex items-start justify-between gap-3">
+                <button
+                  type="button"
+                  onClick={() => onViewStudent(row)}
+                  onMouseEnter={() => router.prefetch(`/dashboard/students/${row.studentId}`)}
+                  onFocus={() => router.prefetch(`/dashboard/students/${row.studentId}`)}
+                  className="flex items-center gap-3 text-left"
+                >
+                  <Avatar className="h-10 w-10">
+                    <AvatarFallback>{getInitials(row.studentName)}</AvatarFallback>
+                  </Avatar>
+                  <div className="flex flex-col">
+                    <span className="font-medium text-foreground">
+                      {row.studentName}
+                    </span>
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        onViewBatch(row);
+                      }}
+                      onMouseEnter={() => router.prefetch(`/dashboard/batches/${row.fee.batchId}`)}
+                      onFocus={() => router.prefetch(`/dashboard/batches/${row.fee.batchId}`)}
+                      className="text-left text-xs text-muted-foreground hover:underline"
+                    >
+                      {row.batchName} · {monthLabel(row.fee.month)}
+                    </button>
+                  </div>
+                </button>
+                <PaymentStatusBadge status={row.fee.status} />
+              </div>
+
+              <div className="grid grid-cols-3 gap-2 text-sm">
+                <div className="flex flex-col">
+                  <span className="text-xs text-muted-foreground">Amount</span>
+                  <span className="text-foreground">
+                    ₹{row.fee.amount.toLocaleString("en-IN")}
+                  </span>
+                </div>
+                <div className="flex flex-col">
+                  <span className="text-xs text-muted-foreground">Paid</span>
+                  <span className="text-foreground">
+                    ₹{row.fee.amountPaid.toLocaleString("en-IN")}
+                  </span>
+                </div>
+                <div className="flex flex-col">
+                  <span className="text-xs text-muted-foreground">Balance</span>
+                  <span className="font-medium text-foreground">
+                    ₹{balance.toLocaleString("en-IN")}
+                  </span>
+                </div>
+              </div>
+
+              <div className="flex items-center justify-between gap-3">
+                <span className="text-xs text-muted-foreground">
+                  Due {format(new Date(row.fee.dueDate), "d MMM yyyy")}
+                </span>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  className="h-9 gap-1.5 rounded-xl"
+                  disabled={row.fee.status === "paid"}
+                  onClick={() => onRecordPayment(row)}
+                >
+                  <Wallet className="h-3.5 w-3.5" aria-hidden="true" />
+                  Record Payment
+                </Button>
+              </div>
+            </div>
+          );
+        })}
+      </div>
     </div>
   );
 }

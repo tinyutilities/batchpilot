@@ -67,8 +67,8 @@ export default function TodaySchedule({ schedule, today }: TodayScheduleProps) {
                       className={cn(
                         "gap-1 rounded-full border-transparent",
                         entry.googleMeetLink
-                          ? "bg-blue-50 text-blue-600 hover:bg-blue-50 dark:bg-blue-500/10 dark:text-blue-400"
-                          : "bg-slate-100 text-slate-600 hover:bg-slate-100 dark:bg-slate-800 dark:text-slate-300"
+                          ? "bg-secondary-soft text-secondary-foreground hover:bg-secondary-soft"
+                          : "bg-muted text-muted-foreground hover:bg-muted"
                       )}
                     >
                       {entry.googleMeetLink ? (
@@ -82,8 +82,8 @@ export default function TodaySchedule({ schedule, today }: TodayScheduleProps) {
                       className={cn(
                         "gap-1 rounded-full border-transparent",
                         entry.isMarked
-                          ? "bg-emerald-50 text-emerald-600 hover:bg-emerald-50 dark:bg-emerald-500/10 dark:text-emerald-400"
-                          : "bg-amber-50 text-amber-600 hover:bg-amber-50 dark:bg-amber-500/10 dark:text-amber-400"
+                          ? "bg-success-soft text-success hover:bg-success-soft"
+                          : "bg-warning-soft text-warning hover:bg-warning-soft"
                       )}
                     >
                       <CheckCircle2 className="h-3 w-3" aria-hidden="true" />
@@ -105,7 +105,7 @@ export default function TodaySchedule({ schedule, today }: TodayScheduleProps) {
                 <div className="flex shrink-0 flex-wrap items-center justify-end gap-2">
                   {entry.googleMeetLink && (
                     <>
-                      <div className="flex items-center gap-1.5 rounded-lg border border-slate-200 bg-slate-50 py-1.5 pr-1.5 pl-2.5 dark:border-slate-800 dark:bg-slate-900">
+                      <div className="flex items-center gap-1.5 rounded-lg border border-border bg-background py-1.5 pr-1.5 pl-2.5">
                         <span className="max-w-[160px] truncate font-mono text-xs text-foreground sm:max-w-[200px]">
                           {formatMeetLink(entry.googleMeetLink)}
                         </span>
@@ -115,7 +115,7 @@ export default function TodaySchedule({ schedule, today }: TodayScheduleProps) {
                           onClick={() =>
                             handleCopyMeetLink(entry.googleMeetLink)
                           }
-                          className="flex h-6 w-6 shrink-0 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-slate-200 hover:text-foreground dark:hover:bg-slate-800"
+                          className="flex h-6 w-6 shrink-0 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
                         >
                           <Copy className="h-3.5 w-3.5" aria-hidden="true" />
                           <span className="sr-only">Copy link</span>

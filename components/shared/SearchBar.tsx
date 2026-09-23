@@ -27,7 +27,7 @@ export default function SearchBar({
     return (
       <div className="relative w-full max-w-md">
         <Search
-          className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400"
+          className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground"
           aria-hidden="true"
         />
 
@@ -36,7 +36,7 @@ export default function SearchBar({
           value={value}
           onChange={(e) => onChange(e.target.value)}
           placeholder={placeholder}
-          className="h-11 w-full rounded-xl border border-slate-200 bg-white pl-10 pr-10 text-sm text-foreground outline-none transition placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-2 focus-visible:ring-ring/30 dark:border-slate-800 dark:bg-slate-950"
+          className="h-11 w-full rounded-xl border border-border bg-card pl-10 pr-10 text-sm text-foreground outline-none transition placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-2 focus-visible:ring-ring/30"
         />
 
         {value && (
@@ -70,7 +70,7 @@ export default function SearchBar({
         onClick={() => inputRef.current?.focus()}
         aria-label="Search"
         tabIndex={isExpanded ? -1 : 0}
-        className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"
+        className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground"
       >
         <Search className="h-4 w-4" aria-hidden="true" />
       </button>
@@ -84,7 +84,7 @@ export default function SearchBar({
         onBlur={() => setIsFocused(false)}
         placeholder={placeholder}
         aria-label={placeholder}
-        className="h-11 w-full rounded-xl border border-slate-200 bg-white pl-10 pr-10 text-sm text-foreground outline-none transition placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-2 focus-visible:ring-ring/30 dark:border-slate-800 dark:bg-slate-950"
+        className="h-11 w-full rounded-xl border border-border bg-card pl-10 pr-10 text-sm text-foreground outline-none transition placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-2 focus-visible:ring-ring/30"
       />
 
       {isExpanded && value && (

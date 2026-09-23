@@ -8,32 +8,31 @@ interface AttendanceStatusBadgeProps {
   className?: string;
 }
 
+// present → success (Periglacial Blue family), late → warning (Clay),
+// excused → secondary (El Niño, informational rather than good/bad),
+// absent → danger.
 const STATUS_CONFIG: Record<
   AttendanceStatus,
   { label: string; className: string; icon: typeof CheckCircle2 }
 > = {
   present: {
     label: "Present",
-    className:
-      "bg-emerald-50 text-emerald-600 hover:bg-emerald-50 dark:bg-emerald-500/10 dark:text-emerald-400",
+    className: "bg-success-soft text-success hover:bg-success-soft",
     icon: CheckCircle2,
   },
   absent: {
     label: "Absent",
-    className:
-      "bg-red-50 text-red-600 hover:bg-red-50 dark:bg-red-500/10 dark:text-red-400",
+    className: "bg-danger-soft text-destructive hover:bg-danger-soft",
     icon: XCircle,
   },
   late: {
     label: "Late",
-    className:
-      "bg-amber-50 text-amber-600 hover:bg-amber-50 dark:bg-amber-500/10 dark:text-amber-400",
+    className: "bg-warning-soft text-warning hover:bg-warning-soft",
     icon: Clock,
   },
   excused: {
     label: "Excused",
-    className:
-      "bg-blue-50 text-blue-600 hover:bg-blue-50 dark:bg-blue-500/10 dark:text-blue-400",
+    className: "bg-secondary-soft text-secondary-foreground hover:bg-secondary-soft",
     icon: ShieldCheck,
   },
 };

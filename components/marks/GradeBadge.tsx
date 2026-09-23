@@ -7,14 +7,17 @@ interface GradeBadgeProps {
   className?: string;
 }
 
+// A best-to-worst gradient across the palette's semantic roles rather than
+// a literal traffic-light scheme: success → primary → secondary → warning
+// → accent → danger.
 const GRADE_CLASSES: Record<Grade, string> = {
-  "A+": "bg-emerald-50 text-emerald-600 hover:bg-emerald-50 dark:bg-emerald-500/10 dark:text-emerald-400",
-  A: "bg-indigo-50 text-indigo-600 hover:bg-indigo-50 dark:bg-indigo-500/10 dark:text-indigo-400",
-  "B+": "bg-blue-50 text-blue-600 hover:bg-blue-50 dark:bg-blue-500/10 dark:text-blue-400",
-  B: "bg-amber-50 text-amber-600 hover:bg-amber-50 dark:bg-amber-500/10 dark:text-amber-400",
-  C: "bg-orange-50 text-orange-600 hover:bg-orange-50 dark:bg-orange-500/10 dark:text-orange-400",
-  D: "bg-rose-50 text-rose-600 hover:bg-rose-50 dark:bg-rose-500/10 dark:text-rose-400",
-  F: "bg-red-50 text-red-600 hover:bg-red-50 dark:bg-red-500/10 dark:text-red-400",
+  "A+": "bg-success-soft text-success hover:bg-success-soft",
+  A: "bg-primary-soft text-primary hover:bg-primary-soft",
+  "B+": "bg-secondary-soft text-secondary-foreground hover:bg-secondary-soft",
+  B: "bg-warning-soft text-warning hover:bg-warning-soft",
+  C: "bg-accent-soft text-accent hover:bg-accent-soft",
+  D: "bg-danger-soft text-destructive hover:bg-danger-soft",
+  F: "bg-danger-soft text-destructive hover:bg-danger-soft",
 };
 
 export default function GradeBadge({ grade, className }: GradeBadgeProps) {

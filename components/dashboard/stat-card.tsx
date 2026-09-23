@@ -14,17 +14,15 @@ interface StatCardProps {
   className?: string
 }
 
+// Mapped onto the coastal palette's semantic tokens rather than raw
+// Tailwind hues, so these stay in sync with theme changes automatically.
 const colorStyles: Record<NonNullable<StatCardProps['color']>, string> = {
-  indigo:
-    'bg-indigo-50 text-indigo-600 dark:bg-indigo-500/10 dark:text-indigo-400',
-  green:
-    'bg-emerald-50 text-emerald-600 dark:bg-emerald-500/10 dark:text-emerald-400',
-  amber:
-    'bg-amber-50 text-amber-600 dark:bg-amber-500/10 dark:text-amber-400',
-  rose: 'bg-rose-50 text-rose-600 dark:bg-rose-500/10 dark:text-rose-400',
-  blue: 'bg-blue-50 text-blue-600 dark:bg-blue-500/10 dark:text-blue-400',
-  violet:
-    'bg-violet-50 text-violet-600 dark:bg-violet-500/10 dark:text-violet-400',
+  indigo: 'bg-primary-soft text-primary',
+  green: 'bg-success-soft text-success',
+  amber: 'bg-warning-soft text-warning',
+  rose: 'bg-danger-soft text-destructive',
+  blue: 'bg-secondary-soft text-secondary-foreground',
+  violet: 'bg-accent-soft text-accent',
 }
 
 export function StatCard({
@@ -42,7 +40,7 @@ export function StatCard({
     >
       <Card
         className={cn(
-          '[--card-spacing:--spacing(4)] rounded-2xl border-gray-200 bg-white shadow-sm transition-shadow hover:shadow-md dark:bg-gray-900',
+          '[--card-spacing:--spacing(4)] rounded-2xl border-border bg-card shadow-raised transition-shadow hover:shadow-elevated',
           className
         )}
       >
@@ -51,7 +49,7 @@ export function StatCard({
             <p className="text-sm font-medium text-muted-foreground">
               {title}
             </p>
-            <p className="text-xl font-semibold tracking-tight text-gray-900 dark:text-white">
+            <p className="text-xl font-semibold tracking-tight text-foreground">
               {value}
             </p>
             {description && (

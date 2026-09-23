@@ -1,3 +1,4 @@
+import { cache } from "react";
 import { prisma } from "@/server/db/prisma";
 import { mapBatch } from "@/server/batches/mappers";
 import { mapStudent } from "@/server/students/mappers";
@@ -13,14 +14,17 @@ const batchInclude = {
   teacher: { select: { fullName: true } },
 } as const;
 
-export async function getAllBatches(teacherId: string): Promise<Batch[]> {
+// Cached per request — dashboard/batches/attendance/fees/marks pages all
+// pull the full batch list in the same render, and this dedupes those into
+// one query.
+export const getAllBatches = cache(async (teacherId: string): Promise<Batch[]> => {
   const rows = await prisma.batch.findMany({
     where: { teacherId },
     include: batchInclude,
     orderBy: { createdAt: "desc" },
   });
   return rows.map(mapBatch);
-}
+});
 
 export async function getBatchById(
   teacherId: string,

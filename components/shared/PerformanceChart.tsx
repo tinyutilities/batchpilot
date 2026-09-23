@@ -5,11 +5,15 @@ interface PerformanceChartProps {
   emptyMessage?: string;
 }
 
+// Same 90/75/50 tiers and token mapping used by the attendance/capacity/
+// score gradients elsewhere (StudentTable, BatchCard, MarksTable,
+// AttendanceTable, FeesPageClient) — keeps every "gradient of performance"
+// indicator in the app reading the same way.
 function getBarColor(percentage: number) {
-  if (percentage >= 90) return "bg-emerald-500";
-  if (percentage >= 75) return "bg-blue-500";
-  if (percentage >= 50) return "bg-amber-500";
-  return "bg-red-500";
+  if (percentage >= 90) return "bg-success";
+  if (percentage >= 75) return "bg-secondary-foreground";
+  if (percentage >= 50) return "bg-warning";
+  return "bg-destructive";
 }
 
 export default function PerformanceChart({
@@ -28,7 +32,7 @@ export default function PerformanceChart({
             <span className="font-medium text-foreground">{point.label}</span>
             <span className="text-muted-foreground">{point.percentage}%</span>
           </div>
-          <div className="h-2 w-full overflow-hidden rounded-full bg-slate-100 dark:bg-slate-800">
+          <div className="h-2 w-full overflow-hidden rounded-full bg-muted">
             <div
               className={cn(
                 "h-full rounded-full",

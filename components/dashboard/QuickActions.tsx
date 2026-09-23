@@ -8,40 +8,39 @@ import {
 } from "lucide-react";
 import { DashboardCard } from "@/components/dashboard/dashboard-card";
 
+// Reuses the same soft-token set StatCard's icon circles use, so the
+// dashboard's decorative icon accents read as one coherent system rather
+// than an unrelated rainbow of hues.
 const ACTIONS = [
   {
     label: "Add Student",
     href: "/dashboard/students?addStudent=1",
     icon: UserPlus,
-    className: "bg-blue-50 text-blue-600 dark:bg-blue-500/10 dark:text-blue-400",
+    className: "bg-primary-soft text-primary",
   },
   {
     label: "Create Batch",
     href: "/dashboard/batches/new",
     icon: Layers,
-    className:
-      "bg-indigo-50 text-indigo-600 dark:bg-indigo-500/10 dark:text-indigo-400",
+    className: "bg-secondary-soft text-secondary-foreground",
   },
   {
     label: "Mark Attendance",
     href: "/dashboard/attendance/mark",
     icon: CalendarCheck,
-    className:
-      "bg-violet-50 text-violet-600 dark:bg-violet-500/10 dark:text-violet-400",
+    className: "bg-accent-soft text-accent",
   },
   {
     label: "Record Payment",
     href: "/dashboard/fees",
     icon: Wallet,
-    className:
-      "bg-emerald-50 text-emerald-600 dark:bg-emerald-500/10 dark:text-emerald-400",
+    className: "bg-success-soft text-success",
   },
   {
     label: "Create Test",
     href: "/dashboard/marks/new",
     icon: ClipboardList,
-    className:
-      "bg-amber-50 text-amber-600 dark:bg-amber-500/10 dark:text-amber-400",
+    className: "bg-warning-soft text-warning",
   },
 ];
 
@@ -53,7 +52,7 @@ export default function QuickActions() {
           <Link
             key={action.label}
             href={action.href}
-            className="flex flex-col items-center gap-2 rounded-xl border border-slate-200 px-3 py-4 text-center transition-colors hover:bg-muted/40 dark:border-slate-800"
+            className="flex flex-col items-center gap-2 rounded-xl border border-border px-3 py-4 text-center transition-colors hover:bg-muted/40"
           >
             <div
               className={`flex h-10 w-10 items-center justify-center rounded-full ${action.className}`}

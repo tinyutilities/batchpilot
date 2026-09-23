@@ -6,7 +6,7 @@ import { Separator } from "@/components/ui/separator";
 
 export default function WelcomeOnboarding() {
   return (
-    <Card className="[--card-spacing:--spacing(6)] rounded-2xl border-slate-200 bg-white shadow-sm sm:[--card-spacing:--spacing(8)] dark:border-slate-800 dark:bg-slate-900">
+    <Card className="[--card-spacing:--spacing(6)] rounded-2xl border-border bg-card shadow-raised sm:[--card-spacing:--spacing(8)]">
       <CardContent className="flex flex-col items-center gap-6 text-center">
         <div className="flex flex-col gap-2">
           <h2 className="text-2xl font-semibold text-foreground">
@@ -19,7 +19,7 @@ export default function WelcomeOnboarding() {
 
         <div className="flex w-full max-w-md flex-col">
           <div className="flex flex-col items-center gap-3 py-5 text-center">
-            <span className="text-xs font-semibold uppercase tracking-wide text-indigo-600 dark:text-indigo-400">
+            <span className="text-xs font-semibold uppercase tracking-wide text-primary">
               Step 1
             </span>
             <p className="text-base font-medium text-foreground">
@@ -36,7 +36,7 @@ export default function WelcomeOnboarding() {
           <Separator />
 
           <div className="flex flex-col items-center gap-3 py-5 text-center">
-            <span className="text-xs font-semibold uppercase tracking-wide text-indigo-600 dark:text-indigo-400">
+            <span className="text-xs font-semibold uppercase tracking-wide text-primary">
               Step 2
             </span>
             <p className="text-base font-medium text-foreground">

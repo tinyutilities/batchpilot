@@ -38,13 +38,13 @@ function getInitials(name: string) {
 function StatusBadge({ status }: { status: AdminTeacher["status"] }) {
   if (status === "active") {
     return (
-      <Badge className="rounded-full bg-emerald-50 text-emerald-600 hover:bg-emerald-50 dark:bg-emerald-500/10 dark:text-emerald-400">
+      <Badge className="rounded-full bg-success-soft text-success hover:bg-success-soft">
         Active
       </Badge>
     );
   }
   return (
-    <Badge className="rounded-full bg-rose-50 text-rose-600 hover:bg-rose-50 dark:bg-rose-500/10 dark:text-rose-400">
+    <Badge className="rounded-full bg-danger-soft text-destructive hover:bg-danger-soft">
       Suspended
     </Badge>
   );
@@ -106,7 +106,7 @@ export default function AdminTeachersPage() {
           }
         />
       ) : (
-        <div className="rounded-xl border border-slate-200 bg-white dark:border-slate-800 dark:bg-slate-950">
+        <div className="rounded-xl border border-border bg-card">
           <Table>
             <TableHeader>
               <TableRow>
@@ -128,7 +128,7 @@ export default function AdminTeachersPage() {
                   <TableCell>
                     <div className="flex items-center gap-3">
                       <Avatar className="h-9 w-9">
-                        <AvatarFallback className="bg-indigo-100 text-indigo-600 dark:bg-indigo-500/10 dark:text-indigo-400">
+                        <AvatarFallback className="bg-primary-soft text-primary">
                           {getInitials(teacher.name)}
                         </AvatarFallback>
                       </Avatar>
@@ -156,7 +156,7 @@ export default function AdminTeachersPage() {
                           type="button"
                           aria-label={`Actions for ${teacher.name}`}
                           onClick={(e) => e.stopPropagation()}
-                          className="flex h-8 w-8 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:bg-slate-100 hover:text-foreground dark:hover:bg-slate-800"
+                          className="flex h-8 w-8 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
                         >
                           <MoreHorizontal
                             className="h-4 w-4"
@@ -180,7 +180,7 @@ export default function AdminTeachersPage() {
                           onClick={() => handleToggleStatus(teacher)}
                           className={
                             teacher.status === "active"
-                              ? "text-red-600 focus:text-red-600 dark:text-red-400 dark:focus:text-red-400"
+                              ? "text-destructive focus:text-destructive"
                               : undefined
                           }
                         >

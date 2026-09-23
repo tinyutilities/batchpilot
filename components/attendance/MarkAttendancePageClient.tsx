@@ -118,7 +118,7 @@ export default function MarkAttendancePageClient({
         />
       </div>
 
-      <Card className="rounded-2xl border-slate-200 shadow-sm dark:border-slate-800">
+      <Card className="rounded-2xl border-border shadow-raised">
         <CardContent className="flex flex-col gap-4 p-5 sm:flex-row sm:items-end sm:p-6">
           <div className="flex flex-1 flex-col gap-2">
             <Label htmlFor="mark-batch">Batch</Label>
@@ -149,7 +149,7 @@ export default function MarkAttendancePageClient({
       </Card>
 
       {!batchId ? (
-        <div className="flex flex-col items-center justify-center gap-3 rounded-2xl border border-slate-200 bg-white px-6 py-10 text-center dark:border-slate-800 dark:bg-slate-950">
+        <div className="flex flex-col items-center justify-center gap-3 rounded-2xl border border-border bg-card px-6 py-10 text-center">
           <p className="text-sm font-medium text-foreground">
             Select a batch to begin
           </p>
@@ -158,11 +158,11 @@ export default function MarkAttendancePageClient({
           </p>
         </div>
       ) : isLoadingRoster ? (
-        <div className="flex flex-col items-center justify-center gap-3 rounded-2xl border border-slate-200 bg-white px-6 py-10 text-center dark:border-slate-800 dark:bg-slate-950">
+        <div className="flex flex-col items-center justify-center gap-3 rounded-2xl border border-border bg-card px-6 py-10 text-center">
           <p className="text-sm text-muted-foreground">Loading students…</p>
         </div>
       ) : students.length === 0 ? (
-        <div className="flex flex-col items-center justify-center gap-3 rounded-2xl border border-slate-200 bg-white px-6 py-10 text-center dark:border-slate-800 dark:bg-slate-950">
+        <div className="flex flex-col items-center justify-center gap-3 rounded-2xl border border-border bg-card px-6 py-10 text-center">
           <p className="text-sm font-medium text-foreground">
             No students enrolled
           </p>

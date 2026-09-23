@@ -107,14 +107,14 @@ export default function MarksEntryForm({
   }
 
   return (
-    <Card className="rounded-2xl border-slate-200 shadow-sm dark:border-slate-800">
+    <Card className="rounded-2xl border-border shadow-raised">
       <CardContent className="flex flex-col gap-4 p-0">
-        <div className="flex flex-col gap-3 border-b border-slate-100 px-6 py-4 dark:border-slate-900 sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex flex-col gap-3 border-b border-border px-6 py-4 sm:flex-row sm:items-center sm:justify-between">
           <p className="text-sm text-muted-foreground">
             {students.length} student{students.length === 1 ? "" : "s"} · Max
             marks {maxMarks}
             {unenteredCount > 0 && (
-              <span className="ml-2 text-amber-600 dark:text-amber-400">
+              <span className="ml-2 text-warning">
                 · {unenteredCount} unentered
               </span>
             )}
@@ -143,7 +143,7 @@ export default function MarksEntryForm({
           </div>
         </div>
 
-        <div className="flex flex-col divide-y divide-slate-100 dark:divide-slate-900">
+        <div className="flex flex-col divide-y divide-border">
           {students.map((student) => {
             const entry = entries[student.id];
             const isAbsent = entry.status === "absent";
@@ -204,7 +204,7 @@ export default function MarksEntryForm({
                     className={cn(
                       "rounded-xl",
                       isAbsent &&
-                        "border-red-500 bg-red-500 text-white hover:bg-red-500"
+                        "border-destructive bg-destructive text-white hover:bg-destructive"
                     )}
                     onClick={() => toggleAbsent(student.id, !isAbsent)}
                   >
@@ -216,7 +216,7 @@ export default function MarksEntryForm({
           })}
         </div>
 
-        <div className="sticky bottom-0 flex flex-col-reverse gap-3 border-t border-slate-100 bg-white px-6 py-4 dark:border-slate-900 dark:bg-slate-950 sm:flex-row sm:justify-end">
+        <div className="sticky bottom-0 flex flex-col-reverse gap-3 border-t border-border bg-card px-6 py-4 sm:flex-row sm:justify-end">
           <Button
             type="button"
             variant="outline"

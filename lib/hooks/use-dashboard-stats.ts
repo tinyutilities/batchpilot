@@ -13,7 +13,11 @@ export function useDashboardStats(fallbackData: DashboardStatsData) {
   const { data, mutate, isLoading } = useSWR<DashboardStatsData>(
     DASHBOARD_STATS_KEY,
     fetchDashboardStats,
-    { fallbackData },
+    // fallbackData is the same request's server-rendered result — trust it
+    // instead of immediately re-fetching on mount. Explicit mutate() calls
+    // (e.g. globalMutate(DASHBOARD_STATS_KEY) after a payment) still work;
+    // this only disables the automatic mount/focus/reconnect revalidation.
+    { fallbackData, revalidateIfStale: false },
   );
 
   return { stats: data ?? fallbackData, mutate, isLoading };

@@ -39,9 +39,9 @@ const navItems = [
 const navItemBaseStyles =
   "flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-all duration-200";
 const navItemActiveStyles =
-  "bg-indigo-50 text-indigo-600 dark:bg-indigo-500/10 dark:text-indigo-400";
+  "bg-primary-soft text-primary";
 const navItemInactiveStyles =
-  "text-muted-foreground hover:bg-slate-100 hover:text-foreground dark:hover:bg-slate-800";
+  "text-muted-foreground hover:bg-muted hover:text-foreground";
 
 function NavLinks({ onNavigate }: { onNavigate?: () => void }) {
   const pathname = usePathname();
@@ -78,7 +78,7 @@ function AdminFooter() {
   return (
     <div className="flex flex-col gap-3">
       <div className="flex items-center gap-3 rounded-xl px-3 py-2">
-        <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-indigo-100 text-indigo-600 dark:bg-indigo-500/10 dark:text-indigo-400">
+        <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-primary-soft text-primary">
           <ShieldCheck className="h-4 w-4" aria-hidden="true" />
         </div>
         <div className="flex flex-col overflow-hidden">
@@ -130,7 +130,7 @@ function MobileHeader() {
   const [open, setOpen] = React.useState(false);
 
   return (
-    <header className="flex h-16 items-center gap-3 border-b border-slate-200 bg-white px-4 dark:border-slate-800 dark:bg-slate-950 lg:hidden">
+    <header className="flex h-16 items-center gap-3 border-b border-border bg-card px-4 lg:hidden">
       <Sheet open={open} onOpenChange={setOpen}>
         <SheetTrigger asChild>
           <Button variant="ghost" size="icon" className="rounded-xl">
@@ -157,8 +157,8 @@ export default function AdminLayout({
   children: React.ReactNode;
 }) {
   return (
-    <div className="flex min-h-screen bg-slate-50 dark:bg-slate-950">
-      <aside className="fixed inset-y-0 left-0 hidden w-[280px] border-r border-slate-200 bg-white dark:border-slate-800 dark:bg-slate-950 lg:block">
+    <div className="flex min-h-screen bg-background">
+      <aside className="fixed inset-y-0 left-0 hidden w-[280px] border-r border-border bg-card lg:block">
         <SidebarContent />
       </aside>
 

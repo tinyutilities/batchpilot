@@ -1,17 +1,19 @@
+import { Suspense } from "react";
 import { redirect } from "next/navigation";
 import { getCurrentTeacher } from "@/server/auth/get-current-teacher";
-import {
-  getDashboardStats,
-  getDashboardTrends,
-  getRecentActivity,
-  getTodaySchedule,
-} from "@/server/dashboard/queries";
 import { prisma } from "@/server/db/prisma";
 import { getTimeOfDayGreeting } from "@/lib/calculations/dashboard";
 import { getTeacherFirstName } from "@/lib/calculations/teacher";
 import { toDateKey } from "@/lib/utils";
+import { PageContainer } from "@/components/layout/page-container";
+import { PageHeader } from "@/components/layout/page-header";
 import WelcomeOnboarding from "@/components/dashboard/WelcomeOnboarding";
-import DashboardPageClient from "@/components/dashboard/DashboardPageClient";
+import DashboardMainSection from "@/components/dashboard/DashboardMainSection";
+import DashboardTrendsSection from "@/components/dashboard/DashboardTrendsSection";
+import {
+  DashboardMainSkeleton,
+  DashboardTrendsSkeleton,
+} from "@/components/dashboard/DashboardSectionSkeletons";
 
 export default async function DashboardPage() {
   const teacher = await getCurrentTeacher();
@@ -35,22 +37,25 @@ export default async function DashboardPage() {
   const greeting = getTimeOfDayGreeting();
   const firstName = getTeacherFirstName(teacher.fullName ?? "") || "Teacher";
 
-  const [stats, schedule, activity, trends] = await Promise.all([
-    getDashboardStats(teacher.id),
-    getTodaySchedule(teacher.id),
-    getRecentActivity(teacher.id, 8),
-    getDashboardTrends(teacher.id, 6),
-  ]);
-
+  // The header needs only `teacher`, already resolved above — it renders
+  // immediately instead of waiting on stats/schedule/activity/trends the
+  // way the old single-client-component page did. The two sections below
+  // stream in independently of each other (see each component's comment for
+  // why they're split where they are).
   return (
-    <DashboardPageClient
-      greeting={greeting}
-      firstName={firstName}
-      today={today}
-      stats={stats}
-      schedule={schedule}
-      activity={activity}
-      trends={trends}
-    />
+    <PageContainer>
+      <PageHeader
+        title={`${greeting}, ${firstName} 👋`}
+        description="Here's an overview of your tuition classes."
+      />
+
+      <Suspense fallback={<DashboardMainSkeleton />}>
+        <DashboardMainSection teacherId={teacher.id} today={today} />
+      </Suspense>
+
+      <Suspense fallback={<DashboardTrendsSkeleton />}>
+        <DashboardTrendsSection teacherId={teacher.id} />
+      </Suspense>
+    </PageContainer>
   );
 }

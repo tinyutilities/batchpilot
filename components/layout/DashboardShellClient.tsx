@@ -37,9 +37,9 @@ const navItems = [
 const navItemBaseStyles =
   "flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-all duration-200";
 const navItemActiveStyles =
-  "bg-indigo-50 text-indigo-600 dark:bg-indigo-500/10 dark:text-indigo-400";
+  "bg-sidebar-accent text-sidebar-accent-foreground shadow-inset";
 const navItemInactiveStyles =
-  "text-muted-foreground hover:bg-slate-100 hover:text-foreground dark:hover:bg-slate-800";
+  "text-sidebar-foreground/70 hover:bg-sidebar-accent/50 hover:text-sidebar-accent-foreground";
 
 function NavLinks({ onNavigate }: { onNavigate?: () => void }) {
   const pathname = usePathname();
@@ -102,7 +102,7 @@ function ProfileSection({
 
       <div className="flex items-center gap-3 rounded-xl px-3 py-2">
         <Avatar className="h-9 w-9">
-          <AvatarFallback className="bg-indigo-100 text-sm font-medium text-indigo-600 dark:bg-indigo-500/10 dark:text-indigo-400">
+          <AvatarFallback className="bg-primary-soft text-sm font-medium text-primary">
             {avatarInitials}
           </AvatarFallback>
         </Avatar>
@@ -153,7 +153,7 @@ function MobileHeader(props: ProfileSectionProps) {
   const [open, setOpen] = React.useState(false);
 
   return (
-    <header className="flex h-16 items-center gap-3 border-b border-slate-200 bg-white px-4 dark:border-slate-800 dark:bg-slate-950 lg:hidden">
+    <header className="flex h-16 items-center gap-3 border-b border-sidebar-border bg-sidebar px-4 lg:hidden">
       <Sheet open={open} onOpenChange={setOpen}>
         <SheetTrigger asChild>
           <Button variant="ghost" size="icon" className="rounded-xl">
@@ -187,8 +187,8 @@ export function DashboardShellClient({
   const profileProps = { teacherName, teacherEmail, avatarInitials };
 
   return (
-    <div className="flex min-h-screen bg-slate-50 dark:bg-slate-950">
-      <aside className="fixed inset-y-0 left-0 hidden w-[280px] border-r border-slate-200 bg-white dark:border-slate-800 dark:bg-slate-950 lg:block">
+    <div className="flex min-h-screen bg-background">
+      <aside className="fixed inset-y-0 left-0 hidden w-[280px] border-r border-sidebar-border bg-sidebar lg:block">
         <SidebarContent {...profileProps} />
       </aside>
 

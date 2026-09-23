@@ -22,7 +22,7 @@ export function PageHeader({
       )}
     >
       <div className="space-y-2">
-        <h1 className="text-3xl font-bold tracking-tight text-slate-900 dark:text-white md:text-4xl">
+        <h1 className="text-3xl font-bold tracking-tight text-foreground md:text-4xl">
           {title}
         </h1>
 

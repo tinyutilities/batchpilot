@@ -84,7 +84,7 @@ export default function SignupPage() {
   }
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-slate-50 px-4 py-10 dark:bg-slate-950">
+    <div className="flex min-h-screen items-center justify-center bg-background px-4 py-10">
       <div className="flex w-full max-w-md flex-col items-center gap-8">
         <Logo size={40} />
 
@@ -94,7 +94,7 @@ export default function SignupPage() {
           description="Sign up to start managing your classes."
         />
 
-        <Card className="w-full rounded-2xl border-slate-200 shadow-lg transition-shadow duration-200 hover:shadow-xl dark:border-slate-800">
+        <Card className="w-full rounded-2xl border-border shadow-lg transition-shadow duration-200 hover:shadow-xl">
           <CardContent className="p-6 sm:p-8">
             <form onSubmit={handleSubmit} className="flex flex-col gap-5">
               <div className="flex flex-col gap-2">
@@ -180,7 +180,7 @@ export default function SignupPage() {
               Already have an account?{" "}
               <Link
                 href="/auth/login"
-                className="font-medium text-indigo-600 hover:underline dark:text-indigo-400"
+                className="font-medium text-primary hover:underline"
               >
                 Sign In
               </Link>

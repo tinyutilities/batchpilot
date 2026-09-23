@@ -57,8 +57,8 @@ export default function TestDetailPageClient({
           title="Test not found"
           description="This test may have been removed."
         />
-        <div className="flex flex-col items-center justify-center gap-3 rounded-2xl border border-slate-200 bg-white px-6 py-10 text-center dark:border-slate-800 dark:bg-slate-950">
-          <div className="flex h-12 w-12 items-center justify-center rounded-full bg-slate-100 dark:bg-slate-800">
+        <div className="flex flex-col items-center justify-center gap-3 rounded-2xl border border-border bg-card px-6 py-10 text-center">
+          <div className="flex h-12 w-12 items-center justify-center rounded-full bg-muted">
             <ClipboardX
               className="h-6 w-6 text-muted-foreground"
               aria-hidden="true"

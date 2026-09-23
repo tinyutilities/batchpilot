@@ -102,7 +102,7 @@ function LoginContent() {
   }
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-slate-50 px-4 py-10 dark:bg-slate-950">
+    <div className="flex min-h-screen items-center justify-center bg-background px-4 py-10">
       <div className="flex w-full max-w-md flex-col items-center gap-8">
         <Logo size={40} />
 
@@ -112,10 +112,10 @@ function LoginContent() {
           description="Welcome back! Sign in to manage your classes."
         />
 
-        <Card className="w-full rounded-2xl border-slate-200 shadow-lg transition-shadow duration-200 hover:shadow-xl dark:border-slate-800">
+        <Card className="w-full rounded-2xl border-border shadow-lg transition-shadow duration-200 hover:shadow-xl">
           <CardContent className="p-6 sm:p-8">
             {oauthError && (
-              <p className="mb-5 rounded-xl bg-rose-50 px-4 py-3 text-sm text-rose-600 dark:bg-rose-500/10 dark:text-rose-400">
+              <p className="mb-5 rounded-xl bg-danger-soft px-4 py-3 text-sm text-destructive">
                 {oauthError}
               </p>
             )}
@@ -196,7 +196,7 @@ function LoginContent() {
               Don&apos;t have an account?{" "}
               <Link
                 href="/auth/signup"
-                className="font-medium text-indigo-600 hover:underline dark:text-indigo-400"
+                className="font-medium text-primary hover:underline"
               >
                 Sign Up
               </Link>

@@ -64,14 +64,14 @@ export default function AdminSettingsPage() {
         title="Platform Controls"
         description="Not yet connected to a backend — these are placeholders for future infrastructure work."
       >
-        <div className="flex flex-col divide-y divide-slate-200 dark:divide-slate-800">
+        <div className="flex flex-col divide-y divide-border">
           <div className="flex items-center justify-between py-4 first:pt-0 last:pb-0">
             <div className="flex flex-col gap-0.5">
               <Label htmlFor="demo-mode">Demo Mode</Label>
               <p className="text-sm text-muted-foreground">
                 Serve every workspace with seeded demo data instead of live
                 records. Currently controlled by the{" "}
-                <code className="rounded bg-slate-100 px-1 py-0.5 text-xs dark:bg-slate-800">
+                <code className="rounded bg-muted px-1 py-0.5 text-xs">
                   NEXT_PUBLIC_USE_DEMO_DATA
                 </code>{" "}
                 environment variable.

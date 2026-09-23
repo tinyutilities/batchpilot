@@ -53,8 +53,8 @@ export default function AdminTeacherDetailPage() {
           title="Teacher not found"
           description="This teacher account may have been removed."
         />
-        <div className="flex flex-col items-center justify-center gap-3 rounded-2xl border border-slate-200 bg-white px-6 py-10 text-center dark:border-slate-800 dark:bg-slate-950">
-          <div className="flex h-12 w-12 items-center justify-center rounded-full bg-slate-100 dark:bg-slate-800">
+        <div className="flex flex-col items-center justify-center gap-3 rounded-2xl border border-border bg-card px-6 py-10 text-center">
+          <div className="flex h-12 w-12 items-center justify-center rounded-full bg-muted">
             <UserX
               className="h-6 w-6 text-muted-foreground"
               aria-hidden="true"
@@ -117,7 +117,7 @@ export default function AdminTeacherDetailPage() {
             <div className="flex flex-col gap-5">
               <div className="flex items-center gap-3">
                 <Avatar className="h-14 w-14">
-                  <AvatarFallback className="bg-indigo-100 text-base font-medium text-indigo-600 dark:bg-indigo-500/10 dark:text-indigo-400">
+                  <AvatarFallback className="bg-primary-soft text-base font-medium text-primary">
                     {getInitials(teacher.name)}
                   </AvatarFallback>
                 </Avatar>
@@ -135,12 +135,12 @@ export default function AdminTeacherDetailPage() {
 
               <div className="flex flex-col gap-3 text-sm">
                 <div className="flex items-center gap-2 text-muted-foreground">
-                  <Mail className="h-4 w-4 shrink-0 text-slate-400" />
+                  <Mail className="h-4 w-4 shrink-0 text-muted-foreground" />
                   {teacher.email}
                 </div>
                 {teacher.phone && (
                   <div className="flex items-center gap-2 text-muted-foreground">
-                    <Phone className="h-4 w-4 shrink-0 text-slate-400" />
+                    <Phone className="h-4 w-4 shrink-0 text-muted-foreground" />
                     {teacher.phone}
                   </div>
                 )}
@@ -151,11 +151,11 @@ export default function AdminTeacherDetailPage() {
               <div className="flex items-center justify-between text-sm">
                 <span className="text-muted-foreground">Status</span>
                 {teacher.status === "active" ? (
-                  <Badge className="rounded-full bg-emerald-50 text-emerald-600 hover:bg-emerald-50 dark:bg-emerald-500/10 dark:text-emerald-400">
+                  <Badge className="rounded-full bg-success-soft text-success hover:bg-success-soft">
                     Active
                   </Badge>
                 ) : (
-                  <Badge className="rounded-full bg-rose-50 text-rose-600 hover:bg-rose-50 dark:bg-rose-500/10 dark:text-rose-400">
+                  <Badge className="rounded-full bg-danger-soft text-destructive hover:bg-danger-soft">
                     Suspended
                   </Badge>
                 )}
@@ -195,7 +195,7 @@ export default function AdminTeacherDetailPage() {
                 This teacher hasn&apos;t created any batches yet.
               </p>
             ) : (
-              <div className="flex flex-col divide-y divide-slate-100 dark:divide-slate-900">
+              <div className="flex flex-col divide-y divide-border">
                 {batches.map((batch) => (
                   <Link
                     key={batch.id}

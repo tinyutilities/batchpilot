@@ -26,13 +26,13 @@ export function DashboardCard({
   return (
     <Card
       className={cn(
-        '[--card-spacing:--spacing(5)] rounded-2xl border-gray-200 bg-white shadow-sm transition-shadow duration-200 hover:shadow-md dark:border-gray-800 dark:bg-gray-900',
+        '[--card-spacing:--spacing(5)] rounded-2xl border-border bg-card shadow-raised transition-shadow duration-200 hover:shadow-elevated',
         className
       )}
     >
       <CardHeader className="flex flex-row items-center justify-between gap-4 space-y-0">
         <div className="flex flex-col gap-1">
-          <CardTitle className="text-base font-semibold text-gray-900 dark:text-white">
+          <CardTitle className="text-base font-semibold text-foreground">
             {title}
           </CardTitle>
           {description && (

@@ -160,8 +160,8 @@ export default function SettingsPageClient({
                   className={cn(
                     "flex shrink-0 items-center gap-2 rounded-xl px-3 py-2 text-sm font-medium transition-colors",
                     isActive
-                      ? "bg-slate-100 text-foreground dark:bg-slate-800"
-                      : "text-muted-foreground hover:bg-slate-50 hover:text-foreground dark:hover:bg-slate-900",
+                      ? "bg-muted text-foreground"
+                      : "text-muted-foreground hover:bg-muted/60 hover:text-foreground",
                   )}
                 >
                   <Icon className="h-4 w-4" />
@@ -185,7 +185,7 @@ export default function SettingsPageClient({
               >
                 <div className="flex items-center gap-4">
                   <Avatar className="h-16 w-16">
-                    <AvatarFallback className="bg-indigo-100 text-lg font-medium text-indigo-600 dark:bg-indigo-500/10 dark:text-indigo-400">
+                    <AvatarFallback className="bg-primary-soft text-lg font-medium text-primary">
                       {getTeacherInitials(profile.fullName)}
                     </AvatarFallback>
                   </Avatar>
@@ -271,7 +271,7 @@ export default function SettingsPageClient({
                   </div>
                 </div>
 
-                <div className="flex justify-end gap-3 border-t border-slate-200 pt-5 dark:border-slate-800">
+                <div className="flex justify-end gap-3 border-t border-border pt-5">
                   <Button
                     type="button"
                     variant="outline"
@@ -422,7 +422,7 @@ export default function SettingsPageClient({
                   </div>
                 </div>
 
-                <div className="flex justify-end gap-3 border-t border-slate-200 pt-5 dark:border-slate-800">
+                <div className="flex justify-end gap-3 border-t border-border pt-5">
                   <Button
                     type="button"
                     variant="outline"
@@ -446,7 +446,7 @@ export default function SettingsPageClient({
               description="Control how the application looks and notifies you."
               className="p-6"
             >
-              <div className="flex flex-col divide-y divide-slate-200 dark:divide-slate-800">
+              <div className="flex flex-col divide-y divide-border">
                 <div className="flex items-center justify-between py-4 first:pt-0 last:pb-0">
                   <div className="flex flex-col gap-0.5">
                     <Label htmlFor="darkMode">Dark Mode</Label>

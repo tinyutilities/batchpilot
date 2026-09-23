@@ -5,7 +5,7 @@ import { EmptyState } from "@/components/layout/empty-state";
 
 export default function OfflinePage() {
   return (
-    <div className="flex min-h-screen items-center justify-center bg-slate-50 px-4 py-10 dark:bg-slate-950">
+    <div className="flex min-h-screen items-center justify-center bg-background px-4 py-10">
       <div className="flex w-full max-w-md flex-col items-center gap-8">
         <Logo size={40} />
 

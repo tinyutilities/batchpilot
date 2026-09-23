@@ -1,3 +1,4 @@
+import { cache } from "react";
 import { prisma } from "@/server/db/prisma";
 import { mapStudent } from "@/server/students/mappers";
 import type { Student } from "@/types/student";
@@ -71,7 +72,9 @@ export async function getStudentBatchAssignments(
   });
 }
 
-export async function getAllStudents(teacherId: string): Promise<Student[]> {
+// Cached per request — dashboard, students and marks pages all pull the
+// full roster in the same render, and this dedupes those into one query.
+export const getAllStudents = cache(async (teacherId: string): Promise<Student[]> => {
   const students = await prisma.student.findMany({
     where: { teacherId },
     orderBy: { createdAt: "desc" },
@@ -99,7 +102,7 @@ export async function getAllStudents(teacherId: string): Promise<Student[]> {
       pendingFees: pendingFeesByStudent.get(student.id) ?? 0,
     }),
   );
-}
+});
 
 export async function getStudentById(
   teacherId: string,

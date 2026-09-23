@@ -27,22 +27,22 @@ const STATUS_OPTIONS: {
     value: "present",
     label: "Present",
     activeClass:
-      "border-emerald-500 bg-emerald-500 text-white hover:bg-emerald-500",
+      "border-success bg-success text-white hover:bg-success",
   },
   {
     value: "absent",
     label: "Absent",
-    activeClass: "border-red-500 bg-red-500 text-white hover:bg-red-500",
+    activeClass: "border-destructive bg-destructive text-white hover:bg-destructive",
   },
   {
     value: "late",
     label: "Late",
-    activeClass: "border-amber-500 bg-amber-500 text-white hover:bg-amber-500",
+    activeClass: "border-warning bg-warning text-white hover:bg-warning",
   },
   {
     value: "excused",
     label: "Excused",
-    activeClass: "border-blue-500 bg-blue-500 text-white hover:bg-blue-500",
+    activeClass: "border-secondary-foreground bg-secondary-foreground text-white hover:bg-secondary-foreground",
   },
 ];
 
@@ -104,13 +104,13 @@ export default function AttendanceForm({
   }
 
   return (
-    <Card className="rounded-2xl border-slate-200 shadow-sm dark:border-slate-800">
+    <Card className="rounded-2xl border-border shadow-raised">
       <CardContent className="flex flex-col gap-4 p-0">
-        <div className="flex flex-col gap-3 border-b border-slate-100 px-6 py-4 dark:border-slate-900 sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex flex-col gap-3 border-b border-border px-6 py-4 sm:flex-row sm:items-center sm:justify-between">
           <p className="text-sm text-muted-foreground">
             {students.length} student{students.length === 1 ? "" : "s"}
             {unmarkedCount > 0 && (
-              <span className="ml-2 text-amber-600 dark:text-amber-400">
+              <span className="ml-2 text-warning">
                 · {unmarkedCount} unmarked
               </span>
             )}
@@ -149,7 +149,7 @@ export default function AttendanceForm({
           </div>
         </div>
 
-        <div className="flex flex-col divide-y divide-slate-100 dark:divide-slate-900">
+        <div className="flex flex-col divide-y divide-border">
           {students.map((student) => {
             const currentStatus = statuses[student.id];
 
@@ -201,7 +201,7 @@ export default function AttendanceForm({
           })}
         </div>
 
-        <div className="sticky bottom-0 flex flex-col-reverse gap-3 border-t border-slate-100 bg-white px-6 py-4 dark:border-slate-900 dark:bg-slate-950 sm:flex-row sm:justify-end">
+        <div className="sticky bottom-0 flex flex-col-reverse gap-3 border-t border-border bg-card px-6 py-4 sm:flex-row sm:justify-end">
           <Button
             type="button"
             variant="outline"

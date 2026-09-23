@@ -19,7 +19,7 @@ export function FormSection({
     <div className={cn('flex flex-col gap-5', className)}>
       <div className="flex flex-col gap-3">
         <div className="flex flex-col gap-1">
-          <h3 className="text-lg font-semibold tracking-tight text-gray-900 dark:text-white">
+          <h3 className="text-lg font-semibold tracking-tight text-foreground">
             {title}
           </h3>
           {description && (

@@ -41,10 +41,7 @@ export function Logo({ size = 32, showText = true, className }: LogoProps) {
             hover: { x: 1 },
           }}
           transition={{ type: 'spring', stiffness: 300, damping: 20 }}
-          className={cn(
-            'font-semibold tracking-tight',
-            'text-gray-900 dark:text-white'
-          )}
+          className={cn('font-semibold tracking-tight text-foreground')}
           style={{ fontSize: Math.max(14, Math.round(size * 0.5)) }}
         >
           BatchPilot

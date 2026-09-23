@@ -7,11 +7,13 @@ interface AttendanceCalendarProps {
   days?: number;
 }
 
+// Same semantic mapping as AttendanceStatusBadge — present/absent/late/
+// excused should read identically everywhere attendance status appears.
 const STATUS_COLOR: Record<AttendanceStatus, string> = {
-  present: "bg-emerald-500",
-  absent: "bg-red-500",
-  late: "bg-amber-500",
-  excused: "bg-blue-500",
+  present: "bg-success",
+  absent: "bg-destructive",
+  late: "bg-warning",
+  excused: "bg-secondary-foreground",
 };
 
 const LEGEND: { status: AttendanceStatus; label: string }[] = [
@@ -48,7 +50,7 @@ export default function AttendanceCalendar({
               "h-4 w-4 rounded-sm",
               cell.record
                 ? STATUS_COLOR[cell.record.status]
-                : "bg-slate-100 dark:bg-slate-800"
+                : "bg-muted"
             )}
           />
         ))}
@@ -64,7 +66,7 @@ export default function AttendanceCalendar({
           </span>
         ))}
         <span className="flex items-center gap-1.5">
-          <span className="h-2.5 w-2.5 rounded-sm bg-slate-100 dark:bg-slate-800" />
+          <span className="h-2.5 w-2.5 rounded-sm bg-muted" />
           No session
         </span>
       </div>

@@ -2,11 +2,15 @@ import type { MetadataRoute } from "next";
 
 export default function manifest(): MetadataRoute.Manifest {
   return {
+    id: "/dashboard",
     name: "BatchPilot · Navigate Every Batch",
     short_name: "BatchPilot",
     description:
       "Navigate every batch — students, attendance, fees and marks — from one modern dashboard built for teachers.",
-    start_url: "/",
+    // The installed icon should reopen straight into the app, not the
+    // marketing landing page — middleware still redirects to /auth/login
+    // if the session has expired, so this doesn't bypass auth.
+    start_url: "/dashboard",
     scope: "/",
     display: "standalone",
     // Not locked to portrait: the dashboard's tables are used in landscape

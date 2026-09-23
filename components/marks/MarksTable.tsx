@@ -1,5 +1,6 @@
 "use client";
 
+import { useRouter } from "next/navigation";
 import { format } from "date-fns";
 import { Eye, MoreHorizontal, Pencil, Trash2, Users } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -30,10 +31,10 @@ interface MarksTableProps {
 }
 
 function getScoreColor(percentage: number) {
-  if (percentage >= 90) return "text-emerald-600 dark:text-emerald-400";
-  if (percentage >= 75) return "text-blue-600 dark:text-blue-400";
-  if (percentage >= 50) return "text-amber-600 dark:text-amber-400";
-  return "text-red-600 dark:text-red-400";
+  if (percentage >= 90) return "text-success";
+  if (percentage >= 75) return "text-secondary-foreground";
+  if (percentage >= 50) return "text-warning";
+  return "text-destructive";
 }
 
 function TableSkeleton() {
@@ -42,7 +43,7 @@ function TableSkeleton() {
       {Array.from({ length: 6 }).map((_, index) => (
         <div
           key={index}
-          className="flex items-center gap-4 border-b border-slate-100 px-6 py-4 last:border-0 dark:border-slate-900"
+          className="flex items-center gap-4 border-b border-border px-6 py-4 last:border-0"
         >
           <Skeleton className="h-4 w-32" />
           <Skeleton className="h-4 w-24" />
@@ -57,7 +58,7 @@ function TableSkeleton() {
 function EmptyState() {
   return (
     <div className="flex flex-col items-center justify-center gap-3 px-6 py-10 text-center">
-      <div className="flex h-12 w-12 items-center justify-center rounded-full bg-slate-100 dark:bg-slate-800">
+      <div className="flex h-12 w-12 items-center justify-center rounded-full bg-muted">
         <Users className="h-6 w-6 text-muted-foreground" aria-hidden="true" />
       </div>
       <p className="text-sm font-medium text-foreground">
@@ -77,9 +78,11 @@ export default function MarksTable({
   onEditTest,
   onDeleteTest,
 }: MarksTableProps) {
+  const router = useRouter();
+
   if (isLoading) {
     return (
-      <div className="rounded-xl border border-slate-200 bg-white dark:border-slate-800 dark:bg-slate-950">
+      <div className="rounded-xl border border-border bg-card">
         <TableSkeleton />
       </div>
     );
@@ -87,14 +90,15 @@ export default function MarksTable({
 
   if (summaries.length === 0) {
     return (
-      <div className="rounded-xl border border-slate-200 bg-white dark:border-slate-800 dark:bg-slate-950">
+      <div className="rounded-xl border border-border bg-card">
         <EmptyState />
       </div>
     );
   }
 
   return (
-    <div className="rounded-xl border border-slate-200 bg-white dark:border-slate-800 dark:bg-slate-950">
+    <div className="rounded-xl border border-border bg-card">
+      <div className="hidden md:block">
       <Table>
         <TableHeader>
           <TableRow>
@@ -118,6 +122,8 @@ export default function MarksTable({
               onKeyDown={(e) => {
                 if (e.key === "Enter") onViewResults(summary);
               }}
+              onMouseEnter={() => router.prefetch(`/dashboard/marks/${summary.test.id}`)}
+              onFocus={() => router.prefetch(`/dashboard/marks/${summary.test.id}`)}
             >
               <TableCell className="font-medium text-foreground">
                 {summary.test.name}
@@ -156,7 +162,7 @@ export default function MarksTable({
                       size="icon-sm"
                       aria-label={`Actions for ${summary.test.name}`}
                       onClick={(e) => e.stopPropagation()}
-                      className="text-muted-foreground"
+                      className="relative text-muted-foreground before:absolute before:-inset-2 before:content-['']"
                     >
                       <MoreHorizontal className="h-4 w-4" aria-hidden="true" />
                     </Button>
@@ -175,7 +181,7 @@ export default function MarksTable({
                     </DropdownMenuItem>
                     <DropdownMenuItem
                       onClick={() => onDeleteTest(summary)}
-                      className="text-red-600 focus:text-red-600 dark:text-red-400 dark:focus:text-red-400"
+                      className="text-destructive focus:text-destructive"
                     >
                       <Trash2 className="mr-2 h-4 w-4" aria-hidden="true" />
                       Delete
@@ -187,6 +193,79 @@ export default function MarksTable({
           ))}
         </TableBody>
       </Table>
+      </div>
+
+      <div className="flex flex-col divide-y divide-border md:hidden">
+        {summaries.map((summary) => (
+          <div
+            key={summary.test.id}
+            role="button"
+            tabIndex={0}
+            onClick={() => onViewResults(summary)}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") onViewResults(summary);
+            }}
+            onMouseEnter={() => router.prefetch(`/dashboard/marks/${summary.test.id}`)}
+            onFocus={() => router.prefetch(`/dashboard/marks/${summary.test.id}`)}
+            className="flex flex-col gap-3 p-4 transition-colors hover:bg-muted/40 focus:bg-muted/40 focus:outline-none"
+          >
+            <div className="flex items-start justify-between gap-3">
+              <div className="flex flex-col">
+                <span className="font-medium text-foreground">
+                  {summary.test.name}
+                </span>
+                <span className="text-xs text-muted-foreground">
+                  {summary.test.subject} · {summary.batchName}
+                </span>
+              </div>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon-sm"
+                    aria-label={`Actions for ${summary.test.name}`}
+                    onClick={(e) => e.stopPropagation()}
+                    className="relative shrink-0 text-muted-foreground before:absolute before:-inset-2 before:content-['']"
+                  >
+                    <MoreHorizontal className="h-4 w-4" aria-hidden="true" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent
+                  align="end"
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  <DropdownMenuItem onClick={() => onViewResults(summary)}>
+                    <Eye className="mr-2 h-4 w-4" aria-hidden="true" />
+                    View Results
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => onEditTest(summary)}>
+                    <Pencil className="mr-2 h-4 w-4" aria-hidden="true" />
+                    Edit Test
+                  </DropdownMenuItem>
+                  <DropdownMenuItem
+                    onClick={() => onDeleteTest(summary)}
+                    className="text-destructive focus:text-destructive"
+                  >
+                    <Trash2 className="mr-2 h-4 w-4" aria-hidden="true" />
+                    Delete
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </div>
+
+            <div className="flex items-center justify-between text-sm">
+              <span className="text-muted-foreground">
+                {format(new Date(summary.test.testDate), "d MMM yyyy")} ·{" "}
+                {summary.studentsAppeared} appeared
+              </span>
+              <span className={cn("font-medium", getScoreColor(summary.averagePercentage))}>
+                Avg {summary.averagePercentage}% · High {summary.highestPercentage}%
+              </span>
+            </div>
+          </div>
+        ))}
+      </div>
     </div>
   );
 }

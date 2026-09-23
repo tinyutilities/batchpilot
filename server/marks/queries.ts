@@ -1,3 +1,4 @@
+import { cache } from "react";
 import { prisma } from "@/server/db/prisma";
 import { mapMark, mapTest } from "@/server/marks/mappers";
 import { getStudentsByBatch } from "@/server/batches/queries";
@@ -18,13 +19,16 @@ import type {
   TestResultSummary,
 } from "@/types/marks";
 
-export async function getAllTests(teacherId: string): Promise<Test[]> {
+// Cached per request — dashboard's stats/activity/trends and the marks page
+// all pull every test in the same render, and this dedupes those into one
+// query.
+export const getAllTests = cache(async (teacherId: string): Promise<Test[]> => {
   const rows = await prisma.exam.findMany({
     where: { teacherId },
     orderBy: { testDate: "desc" },
   });
   return rows.map(mapTest);
-}
+});
 
 export async function getTestById(
   teacherId: string,
@@ -34,10 +38,13 @@ export async function getTestById(
   return row ? mapTest(row) : null;
 }
 
-export async function getAllMarks(teacherId: string): Promise<MarkRecord[]> {
+// Cached per request — dashboard's stats/activity/trends and the marks page
+// all pull every mark in the same render, and this dedupes those into one
+// query.
+export const getAllMarks = cache(async (teacherId: string): Promise<MarkRecord[]> => {
   const rows = await prisma.mark.findMany({ where: { teacherId } });
   return rows.map(mapMark);
-}
+});
 
 export async function getMarksByTest(
   teacherId: string,

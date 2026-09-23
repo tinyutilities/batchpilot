@@ -23,7 +23,12 @@ function TableHeader({ className, ...props }: React.ComponentProps<"thead">) {
   return (
     <thead
       data-slot="table-header"
-      className={cn("[&_tr]:border-b", className)}
+      // Sticky by default so column headers stay visible while scrolling a
+      // long table on a touch tablet — matters more here than with a mouse
+      // wheel, since losing header context mid-scroll is easy to trigger
+      // with a touch drag. Harmless where a table is short enough to never
+      // scroll off its heading.
+      className={cn("sticky top-0 z-10 bg-card [&_tr]:border-b", className)}
       {...props}
     />
   )

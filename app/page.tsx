@@ -55,15 +55,15 @@ const highlights = [
 
 export default function Home() {
   return (
-    <div className="flex min-h-screen flex-col bg-white">
-      <header className="sticky top-0 z-50 border-b border-slate-200 bg-white">
+    <div className="flex min-h-screen flex-col bg-card">
+      <header className="sticky top-0 z-50 border-b border-border bg-card">
         <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-6">
-          <span className="text-lg font-semibold text-slate-900">
+          <span className="text-lg font-semibold text-foreground">
             BatchPilot
           </span>
           <Link
             href="/auth/login"
-            className="rounded-xl bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700"
+            className="rounded-xl bg-primary px-4 py-2 text-sm font-medium text-white hover:bg-primary-hover"
           >
             Login
           </Link>
@@ -72,23 +72,23 @@ export default function Home() {
 
       <main className="flex-1">
         <section className="mx-auto flex max-w-6xl flex-col items-center px-6 py-24 text-center">
-          <h1 className="max-w-3xl text-4xl font-bold tracking-tight text-slate-900 sm:text-5xl">
+          <h1 className="max-w-3xl text-4xl font-bold tracking-tight text-foreground sm:text-5xl">
             Manage Your Tuition Classes Smarter
           </h1>
-          <p className="mt-6 max-w-2xl text-lg text-slate-600">
+          <p className="mt-6 max-w-2xl text-lg text-muted-foreground">
             Track students, attendance, batches, fees and exam marks from one
             simple dashboard built specifically for teachers.
           </p>
           <div className="mt-10 flex flex-col gap-4 sm:flex-row">
             <Link
               href="/auth/login"
-              className="rounded-xl bg-blue-600 px-6 py-3 text-sm font-medium text-white hover:bg-blue-700"
+              className="rounded-xl bg-primary px-6 py-3 text-sm font-medium text-white hover:bg-primary-hover"
             >
               Get Started
             </Link>
             <a
               href="#features"
-              className="rounded-xl border border-slate-200 px-6 py-3 text-sm font-medium text-slate-900 hover:bg-slate-50"
+              className="rounded-xl border border-border px-6 py-3 text-sm font-medium text-foreground hover:bg-muted/60"
             >
               Explore Features
             </a>
@@ -96,7 +96,7 @@ export default function Home() {
         </section>
 
         <section id="features" className="mx-auto max-w-6xl px-6 py-20">
-          <h2 className="text-center text-3xl font-bold text-slate-900">
+          <h2 className="text-center text-3xl font-bold text-foreground">
             Everything You Need to Run Your Tuition Classes
           </h2>
           <div className="mt-12 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
@@ -105,15 +105,15 @@ export default function Home() {
               return (
                 <div
                   key={feature.title}
-                  className="rounded-2xl bg-slate-50 p-8"
+                  className="rounded-2xl bg-background p-8"
                 >
-                  <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-blue-100">
-                    <Icon className="h-6 w-6 text-blue-600" aria-hidden="true" />
+                  <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-primary-soft">
+                    <Icon className="h-6 w-6 text-primary" aria-hidden="true" />
                   </div>
-                  <h3 className="mt-5 text-lg font-semibold text-slate-900">
+                  <h3 className="mt-5 text-lg font-semibold text-foreground">
                     {feature.title}
                   </h3>
-                  <p className="mt-2 text-sm text-slate-600">
+                  <p className="mt-2 text-sm text-muted-foreground">
                     {feature.description}
                   </p>
                 </div>
@@ -122,9 +122,9 @@ export default function Home() {
           </div>
         </section>
 
-        <section className="border-t border-slate-200 bg-slate-50">
+        <section className="border-t border-border bg-background">
           <div className="mx-auto max-w-6xl px-6 py-20">
-            <h2 className="text-center text-3xl font-bold text-slate-900">
+            <h2 className="text-center text-3xl font-bold text-foreground">
               Why Choose BatchPilot
             </h2>
             <div className="mt-12 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
@@ -133,12 +133,12 @@ export default function Home() {
                 return (
                   <div
                     key={highlight.label}
-                    className="flex flex-col items-center rounded-2xl bg-white p-8 text-center"
+                    className="flex flex-col items-center rounded-2xl bg-card p-8 text-center"
                   >
-                    <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-blue-100">
-                      <Icon className="h-6 w-6 text-blue-600" aria-hidden="true" />
+                    <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-primary-soft">
+                      <Icon className="h-6 w-6 text-primary" aria-hidden="true" />
                     </div>
-                    <span className="mt-4 text-sm font-medium text-slate-900">
+                    <span className="mt-4 text-sm font-medium text-foreground">
                       {highlight.label}
                     </span>
                   </div>
@@ -149,13 +149,13 @@ export default function Home() {
         </section>
       </main>
 
-      <footer className="border-t border-slate-200 bg-white">
+      <footer className="border-t border-border bg-card">
         <div className="mx-auto flex max-w-6xl flex-col items-center gap-2 px-6 py-10 text-center">
-          <span className="text-sm font-semibold text-slate-900">
+          <span className="text-sm font-semibold text-foreground">
             BatchPilot
           </span>
-          <span className="text-sm text-slate-600">© 2026</span>
-          <span className="text-sm text-slate-600">Built by Anushka Kar</span>
+          <span className="text-sm text-muted-foreground">© 2026</span>
+          <span className="text-sm text-muted-foreground">Built by Anushka Kar</span>
         </div>
       </footer>
     </div>

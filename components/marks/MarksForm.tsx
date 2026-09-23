@@ -97,7 +97,7 @@ export default function MarksForm({
   }
 
   return (
-    <Card className="[--card-spacing:--spacing(5)] rounded-2xl border-slate-200 shadow-sm sm:[--card-spacing:--spacing(6)] dark:border-slate-800">
+    <Card className="[--card-spacing:--spacing(5)] rounded-2xl border-border shadow-raised sm:[--card-spacing:--spacing(6)]">
       <CardContent>
         <form
           onSubmit={handleSubmit}

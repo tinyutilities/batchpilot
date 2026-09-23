@@ -11,33 +11,32 @@ import { DashboardCard } from "@/components/dashboard/dashboard-card";
 import { cn } from "@/lib/utils";
 import type { ActivityItem, ActivityType } from "@/types/dashboard";
 
+// Same token set as QuickActions/StatCard's icon circles, kept in the same
+// order as that action originates from (e.g. attendance_marked matches
+// QuickActions' "Mark Attendance") for a consistent icon language.
 const ACTIVITY_CONFIG: Record<
   ActivityType,
   { icon: typeof UserPlus; className: string }
 > = {
   student_added: {
     icon: UserPlus,
-    className: "bg-blue-50 text-blue-600 dark:bg-blue-500/10 dark:text-blue-400",
+    className: "bg-primary-soft text-primary",
   },
   attendance_marked: {
     icon: CalendarCheck,
-    className:
-      "bg-violet-50 text-violet-600 dark:bg-violet-500/10 dark:text-violet-400",
+    className: "bg-accent-soft text-accent",
   },
   payment_recorded: {
     icon: Wallet,
-    className:
-      "bg-emerald-50 text-emerald-600 dark:bg-emerald-500/10 dark:text-emerald-400",
+    className: "bg-success-soft text-success",
   },
   test_created: {
     icon: ClipboardList,
-    className:
-      "bg-indigo-50 text-indigo-600 dark:bg-indigo-500/10 dark:text-indigo-400",
+    className: "bg-secondary-soft text-secondary-foreground",
   },
   marks_entered: {
     icon: ClipboardPen,
-    className:
-      "bg-amber-50 text-amber-600 dark:bg-amber-500/10 dark:text-amber-400",
+    className: "bg-warning-soft text-warning",
   },
 };
 

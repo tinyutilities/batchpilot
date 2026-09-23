@@ -1,3 +1,4 @@
+import { cache } from "react";
 import { prisma } from "@/server/db/prisma";
 import { mapAttendanceRecord } from "@/server/attendance/mappers";
 import { mapBatch } from "@/server/batches/mappers";
@@ -73,9 +74,12 @@ export async function getStudentAttendanceSummary(
   };
 }
 
-export async function getAllAttendanceSessions(
+// Cached per request — dashboard's stats/schedule/activity all pull every
+// attendance session in the same render, and this dedupes those into one
+// pair of queries instead of three.
+export const getAllAttendanceSessions = cache(async (
   teacherId: string,
-): Promise<BatchAttendanceSession[]> {
+): Promise<BatchAttendanceSession[]> => {
   const [records, batches] = await Promise.all([
     prisma.attendance.findMany({ where: { teacherId } }),
     prisma.batch.findMany({ where: { teacherId }, select: { id: true, name: true } }),
@@ -106,7 +110,7 @@ export async function getAllAttendanceSessions(
       };
     })
     .sort((a, b) => (a.date < b.date ? 1 : -1));
-}
+});
 
 export async function getAttendanceSessionsForBatch(
   teacherId: string,
@@ -116,17 +120,19 @@ export async function getAttendanceSessionsForBatch(
   return sessions.filter((session) => session.batchId === batchId);
 }
 
-export async function getScheduledBatchesForDate(
+// Cached per request — dashboard's stats/schedule and the attendance page
+// both ask "what's scheduled today", and this dedupes those into one query.
+export const getScheduledBatchesForDate = cache(async (
   teacherId: string,
   date: string,
-): Promise<Batch[]> {
+): Promise<Batch[]> => {
   const weekDay = getWeekDayForDateKey(date);
   const rows = await prisma.batch.findMany({
     where: { teacherId, status: "ACTIVE" },
     include: { schedule: true, teacher: { select: { fullName: true } } },
   });
   return rows.map(mapBatch).filter((batch) => batchMeetsOnDay(batch, weekDay));
-}
+});
 
 export async function getTodayAttendanceSummary(
   teacherId: string,
@@ -161,28 +167,39 @@ export async function getMonthlyAttendanceStats(
   monthsBack = 6,
 ): Promise<MonthlyAttendanceSummary[]> {
   const today = new Date();
-  const offsets = Array.from({ length: monthsBack }, (_, i) => monthsBack - 1 - i);
+  // Same boundary construction as the old per-month query (local-timezone
+  // `new Date(year, month, 1)`), just spanning the whole window in one go:
+  // [start of the oldest month, start of the month after the current one).
+  const rangeStart = new Date(today.getFullYear(), today.getMonth() - (monthsBack - 1), 1);
+  const rangeEnd = new Date(today.getFullYear(), today.getMonth() + 1, 1);
 
-  return Promise.all(
-    offsets.map(async (offset) => {
-      const monthStart = new Date(today.getFullYear(), today.getMonth() - offset, 1);
-      const monthEnd = new Date(
-        today.getFullYear(),
-        today.getMonth() - offset + 1,
-        1,
-      );
-      const monthKey = toMonthKey(monthStart);
+  const rows = await prisma.attendance.findMany({
+    where: { teacherId, date: { gte: rangeStart, lt: rangeEnd } },
+  });
 
-      const rows = await prisma.attendance.findMany({
-        where: { teacherId, date: { gte: monthStart, lt: monthEnd } },
-      });
-      const mapped = rows.map(mapAttendanceRecord);
+  // Bucket by month using the same local-timezone getters `new Date(y, m, 1)`
+  // boundaries imply, so a row lands in the same month it would have matched
+  // under the old per-month `gte`/`lt` query.
+  const recordsByMonth = new Map<string, AttendanceRecord[]>();
+  rows.forEach((row) => {
+    const monthKey = toMonthKey(row.date);
+    const list = recordsByMonth.get(monthKey) ?? [];
+    list.push(mapAttendanceRecord(row));
+    recordsByMonth.set(monthKey, list);
+  });
 
-      return {
-        month: monthKey,
-        averagePercentage: calculateAttendancePercentage(mapped),
-        totalRecords: mapped.length,
-      };
-    }),
-  );
+  const results: MonthlyAttendanceSummary[] = [];
+  for (let offset = monthsBack - 1; offset >= 0; offset--) {
+    const monthDate = new Date(today.getFullYear(), today.getMonth() - offset, 1);
+    const monthKey = toMonthKey(monthDate);
+    const monthRecords = recordsByMonth.get(monthKey) ?? [];
+
+    results.push({
+      month: monthKey,
+      averagePercentage: calculateAttendancePercentage(monthRecords),
+      totalRecords: monthRecords.length,
+    });
+  }
+
+  return results;
 }
