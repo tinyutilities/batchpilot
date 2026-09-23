@@ -69,7 +69,6 @@ export default function EditTestFormClient({
       toast.success(`${data.name} was updated.`);
     }
     router.push(`/dashboard/marks/${testId}`);
-    router.refresh();
   }
 
   function handleCancel() {

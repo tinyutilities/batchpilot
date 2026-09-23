@@ -150,7 +150,6 @@ export default function BatchDetailPageClient({
       setRoster((prev) => [...prev, updated]);
       setSelectedStudentId("");
       toast.success(`${updated.fullName} was added to ${batchName}.`);
-      router.refresh();
     }
   }
 
@@ -159,7 +158,6 @@ export default function BatchDetailPageClient({
     if (updated) {
       setRoster((prev) => prev.filter((s) => s.id !== student.id));
       toast.success(`${student.fullName} was removed from ${batchName}.`);
-      router.refresh();
     }
   }
 

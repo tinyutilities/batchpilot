@@ -54,7 +54,7 @@ import {
   resetFeePayments,
 } from "@/server/fees/actions";
 import { DASHBOARD_STATS_KEY } from "@/lib/hooks/use-dashboard-stats";
-import type { BatchFeeGridRow, Payment } from "@/types/fees";
+import type { BatchFeeGridRow, FeeRecord, Payment } from "@/types/fees";
 
 const stickyHeadClass = "sticky top-0 z-10 bg-card";
 
@@ -66,7 +66,9 @@ interface BatchMonthFeeTableProps {
   // materialized yet (e.g. auto-init hasn't finished on first paint).
   fallbackExpectedFee: number;
   isLoading?: boolean;
-  onChanged: () => void;
+  // Patches the local grid from authoritative post-mutation FeeRecord(s)
+  // instead of refetching — the caller applies these to its SWR cache.
+  onFeesUpdated: (updates: { studentId: string; fee: FeeRecord }[]) => void;
   onRecordPayment: (studentId: string, studentName: string, month: string) => void;
 }
 
@@ -105,7 +107,7 @@ export default function BatchMonthFeeTable({
   month,
   fallbackExpectedFee,
   isLoading = false,
-  onChanged,
+  onFeesUpdated,
   onRecordPayment,
 }: BatchMonthFeeTableProps) {
   const [pendingStudentId, setPendingStudentId] = useState<string | null>(null);
@@ -124,7 +126,7 @@ export default function BatchMonthFeeTable({
     setPendingStudentId(null);
     if (fee) {
       toast.success(`${studentName} marked paid.`);
-      onChanged();
+      onFeesUpdated([{ studentId, fee }]);
       globalMutate(DASHBOARD_STATS_KEY);
     } else {
       toast.error("Couldn't mark that fee as paid. Please try again.");
@@ -141,7 +143,7 @@ export default function BatchMonthFeeTable({
     setPendingStudentId(null);
     if (fee) {
       toast.success(`${studentName}'s payment was reset to pending.`);
-      onChanged();
+      onFeesUpdated([{ studentId, fee }]);
       globalMutate(DASHBOARD_STATS_KEY);
     } else {
       toast.error("Couldn't reset that payment. Please try again.");
@@ -159,12 +161,12 @@ export default function BatchMonthFeeTable({
   async function handleMarkAllPaid() {
     setIsMarkingAll(true);
     try {
-      const { markedCount } = await markAllPaidForBatchMonth(batchId, month);
+      const { markedCount, updatedFees } = await markAllPaidForBatchMonth(batchId, month);
       if (markedCount > 0) {
         toast.success(
           `Marked ${markedCount} student${markedCount === 1 ? "" : "s"} paid for ${monthLabel(month)}.`,
         );
-        onChanged();
+        onFeesUpdated(updatedFees);
         globalMutate(DASHBOARD_STATS_KEY);
       } else {
         toast.info("Nothing to mark — everyone is already settled.");

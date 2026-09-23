@@ -79,7 +79,6 @@ export default function EditStudentFormClient({
       toast.success(`${data.firstName} ${data.lastName}'s details were updated.`);
     }
     router.push(`/dashboard/students/${studentId}`);
-    router.refresh();
   }
 
   function handleCancel() {

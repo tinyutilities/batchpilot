@@ -321,8 +321,28 @@ export default function FeesPageClient({
       paymentTarget.fee)
     : null;
 
-  function handleGridChanged() {
-    mutateGrid();
+  // Patches the affected cell(s) in the grid from authoritative post-mutation
+  // FeeRecords (Mark Paid / Mark Pending / Mark All Paid) instead of
+  // refetching the whole grid — eliminates the table-wide loading flicker.
+  // mutateGrid's default revalidate:true still reconciles with the server
+  // in the background afterward, same as the flat list's payment pattern.
+  function handleGridFeesUpdated(updates: { studentId: string; fee: FeeRecord }[]) {
+    if (updates.length === 0) return;
+    const updateByStudent = new Map(updates.map((u) => [u.studentId, u.fee]));
+    mutateGrid(
+      gridRows.map((row) => {
+        const fee = updateByStudent.get(row.studentId);
+        if (!fee) return row;
+        return {
+          ...row,
+          cells: row.cells.map((cell) =>
+            cell.month === fee.month
+              ? { month: cell.month, status: fee.status, feeId: fee.id, amount: fee.amount, amountPaid: fee.amountPaid }
+              : cell,
+          ),
+        };
+      }),
+    );
     mutateFeeRows();
   }
 
@@ -520,7 +540,7 @@ export default function FeesPageClient({
             month={gridMonth}
             fallbackExpectedFee={selectedGridBatch?.monthlyFee ?? DEFAULT_MONTHLY_FEE}
             isLoading={isGridLoading}
-            onChanged={handleGridChanged}
+            onFeesUpdated={handleGridFeesUpdated}
             onRecordPayment={handleGridRecordPayment}
           />
         </>

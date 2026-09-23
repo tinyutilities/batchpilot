@@ -179,7 +179,14 @@ export async function markFeePaidInFull(
 export async function markAllPaidForBatchMonth(
   batchId: string,
   monthKey: string,
-): Promise<{ markedCount: number; totalCount: number }> {
+): Promise<{
+  markedCount: number;
+  totalCount: number;
+  // The resulting FeeRecord for every student actually marked paid — lets
+  // the client patch its local grid from authoritative post-mutation state
+  // instead of refetching the whole grid or re-deriving fee status itself.
+  updatedFees: { studentId: string; fee: FeeRecord }[];
+}> {
   const teacher = await getCurrentTeacher();
   if (!teacher) throw new Error("Not authenticated");
 
@@ -193,7 +200,7 @@ export async function markAllPaidForBatchMonth(
     select: { id: true },
   });
 
-  let markedCount = 0;
+  const updatedFees: { studentId: string; fee: FeeRecord }[] = [];
   const results = await Promise.allSettled(
     students.map(async (student) => {
       const fee = await getOrCreateFeeForMonth(student.id, monthKey);
@@ -207,7 +214,8 @@ export async function markAllPaidForBatchMonth(
         method: "cash",
         date: toDateKey(new Date()),
       });
-      markedCount += 1;
+      const updated = await getFeeById(teacher.id, fee.id);
+      if (updated) updatedFees.push({ studentId: student.id, fee: updated });
     }),
   );
   const failed = results.filter((r) => r.status === "rejected");
@@ -218,7 +226,7 @@ export async function markAllPaidForBatchMonth(
     );
   }
 
-  return { markedCount, totalCount: students.length };
+  return { markedCount: updatedFees.length, totalCount: students.length, updatedFees };
 }
 
 // The first time a teacher opens a batch for a given month, materialize a

@@ -95,7 +95,6 @@ export default function SettingsPageClient({
     const nextPreferences = { ...settings.preferences, [key]: nextValue };
     setSettings((prev) => ({ ...prev, preferences: nextPreferences }));
     await updateTeacherPreferences({ [key]: nextValue });
-    router.refresh();
   }
 
   async function handleProfileSubmit(e: React.FormEvent<HTMLFormElement>) {
@@ -103,7 +102,6 @@ export default function SettingsPageClient({
     await updateTeacherProfile(profile);
     setSettings((prev) => ({ ...prev, profile }));
     toast.success("Profile updated.");
-    router.refresh();
   }
 
   async function handleInstituteSubmit(e: React.FormEvent<HTMLFormElement>) {
@@ -111,7 +109,6 @@ export default function SettingsPageClient({
     await updateInstituteProfile(institute);
     setSettings((prev) => ({ ...prev, institute }));
     toast.success("Institute details updated.");
-    router.refresh();
   }
 
   async function handleSignOut() {

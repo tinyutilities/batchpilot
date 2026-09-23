@@ -25,7 +25,6 @@ export default function NewStudentFormClient({
     const student = await createStudent(data);
     toast.success(`${student.fullName} was added to your students.`);
     router.push("/dashboard/students");
-    router.refresh();
   }
 
   function handleCancel() {

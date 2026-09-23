@@ -67,7 +67,6 @@ export default function EditBatchFormClient({
       toast.success(`${data.name}'s details were updated.`);
     }
     router.push(`/dashboard/batches/${batchId}`);
-    router.refresh();
   }
 
   function handleCancel() {

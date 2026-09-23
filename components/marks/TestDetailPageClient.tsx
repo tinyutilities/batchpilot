@@ -93,7 +93,6 @@ export default function TestDetailPageClient({
     setMarksMap(nextMap);
     setFormKey((key) => key + 1);
     setIsSubmitting(false);
-    router.refresh();
   }
 
   function handleCancel() {

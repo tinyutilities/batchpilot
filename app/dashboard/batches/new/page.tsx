@@ -22,7 +22,6 @@ export default function NewBatchPage() {
       // go — the onboarding flow is Create Batch -> Open Batch -> Add
       // Student, not back to the list.
       router.push(`/dashboard/batches/${batchId}?addStudent=1`);
-      router.refresh();
     } catch (error) {
       setIsSubmitting(false);
       toast.error(

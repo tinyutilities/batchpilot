@@ -23,7 +23,6 @@ export default function NewTestFormClient({ batches }: NewTestFormClientProps) {
     const id = await createTest(data);
     toast.success(`${data.name} was created.`);
     router.push(`/dashboard/marks/${id}`);
-    router.refresh();
   }
 
   function handleCancel() {
