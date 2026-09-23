@@ -47,6 +47,11 @@ function LoginContent() {
   const [password, setPassword] = React.useState("");
   const [showPassword, setShowPassword] = React.useState(false);
   const [isSubmitting, setIsSubmitting] = React.useState(false);
+  const [isGoogleSigningIn, setIsGoogleSigningIn] = React.useState(false);
+  // A ref guards re-entry synchronously: two clicks fired before React
+  // re-renders with the disabled button would both see stale state, but a
+  // ref is checked/set immediately, before signInWithOAuth() ever runs.
+  const googleSignInInFlight = React.useRef(false);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -65,6 +70,18 @@ function LoginContent() {
   }
 
   async function handleGoogleSignIn() {
+    // Guards against a second signInWithOAuth() firing while one is already
+    // in flight (double-click, or a second tab/attempt before the first
+    // completes). @supabase/auth-js unconditionally regenerates the shared
+    // PKCE verifier cookie on every call with no de-dupe of its own, so an
+    // overlapping second call invalidates the first attempt's in-progress
+    // flow — surfacing as Supabase's bad_oauth_state error.
+    if (googleSignInInFlight.current) {
+      return;
+    }
+    googleSignInInFlight.current = true;
+    setIsGoogleSigningIn(true);
+
     const supabase = createClient();
 
     const { error } = await supabase.auth.signInWithOAuth({
@@ -77,6 +94,10 @@ function LoginContent() {
     if (error) {
       console.error(error);
       toast.error(error.message);
+      // Only reset on failure — on success the page is navigating away, and
+      // leaving the button disabled avoids a flash of re-enabled state.
+      googleSignInInFlight.current = false;
+      setIsGoogleSigningIn(false);
     }
   }
 
@@ -162,10 +183,13 @@ function LoginContent() {
               type="button"
               variant="outline"
               className="h-11 w-full rounded-xl transition-transform duration-200 hover:scale-[1.02]"
+              disabled={isGoogleSigningIn}
               onClick={handleGoogleSignIn}
             >
               <GoogleIcon />
-              <span className="ml-2">Google Sign In</span>
+              <span className="ml-2">
+                {isGoogleSigningIn ? "Redirecting…" : "Google Sign In"}
+              </span>
             </Button>
 
             <p className="mt-6 text-center text-sm text-muted-foreground">
